@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added notification history component for better visibility of past notifications
   - Improved code organization and maintainability
   - Enhanced user experience with better feedback during notification testing
+- Enhanced Settings page UI:
+  - Implemented tab-based interface to reduce visual clutter
+  - Added collapsible sections for notification channels
+  - Improved organization of settings into logical categories
+  - Better user experience with focused, task-oriented views
 
 ### Removed
 - Deprecated upsStatusChecker.js in favor of the consolidated monitoring service

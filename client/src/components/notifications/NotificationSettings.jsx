@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { FiBell, FiSave } from 'react-icons/fi';
+import { FiBell, FiSave, FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import { useSettings } from '../../context/SettingsContext';
 import DiscordNotificationSettings from './DiscordNotificationSettings';
 import SlackNotificationSettings from './SlackNotificationSettings';
@@ -12,12 +12,27 @@ import NotificationHistory from './NotificationHistory';
  * Main Notification Settings Component
  * 
  * This component serves as the container for all notification-related settings.
- * It has been refactored to use smaller, more focused components for better
- * code organization and maintainability.
+ * It has been refactored to use smaller, more focused components with collapsible
+ * sections to reduce visual clutter and improve user experience.
  */
 const NotificationSettings = ({ setError, setSuccess }) => {
   const { settings, updateSetting } = useSettings();
   const [isSaving, setIsSaving] = useState(false);
+  const [expandedSections, setExpandedSections] = useState({
+    discord: false,
+    slack: false,
+    email: false,
+    types: true,
+    history: false
+  });
+
+  // Toggle section expansion
+  const toggleSection = (section) => {
+    setExpandedSections({
+      ...expandedSections,
+      [section]: !expandedSections[section]
+    });
+  };
 
   // Function to save notification settings to the server
   const handleSaveSettings = async () => {
@@ -50,66 +65,130 @@ const NotificationSettings = ({ setError, setSuccess }) => {
   };
 
   return (
-    <div className="pt-4 border-t dark:border-gray-700">
-      <h4 className="text-sm font-medium text-gray-900 dark:text-white">Notifications</h4>
-      <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-        Configure notifications for UPS status changes
-      </p>
+    <div className="pt-4">
+      <div className="flex items-start">
+        <div className="flex items-center h-5">
+          <input
+            id="notifications"
+            name="notifications"
+            type="checkbox"
+            checked={settings.notifications}
+            onChange={(e) => updateSetting('notifications', e.target.checked)}
+            className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded"
+          />
+        </div>
+        <div className="ml-3 text-sm">
+          <label htmlFor="notifications" className="font-medium text-gray-700 dark:text-gray-300">
+            Enable notifications
+          </label>
+          <p className="text-gray-500 dark:text-gray-400">
+            Receive notifications when UPS status changes
+          </p>
+        </div>
+      </div>
+      
       <div className="mt-4 space-y-4">
-        <div className="flex items-start">
-          <div className="flex items-center h-5">
-            <input
-              id="notifications"
-              name="notifications"
-              type="checkbox"
-              checked={settings.notifications}
-              onChange={(e) => updateSetting('notifications', e.target.checked)}
-              className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded"
-            />
+        {/* Discord Notifications */}
+        <div className="border-t pt-4 dark:border-gray-700">
+          <div 
+            onClick={() => toggleSection('discord')} 
+            className="flex items-center cursor-pointer text-sm font-medium text-gray-900 dark:text-white"
+          >
+            {expandedSections.discord ? 
+              <FiChevronDown className="h-4 w-4 mr-2" /> : 
+              <FiChevronRight className="h-4 w-4 mr-2" />
+            }
+            <span>Discord Notifications</span>
           </div>
-          <div className="ml-3 text-sm">
-            <label htmlFor="notifications" className="font-medium text-gray-700 dark:text-gray-300">
-              Enable notifications
-            </label>
-            <p className="text-gray-500 dark:text-gray-400">
-              Receive notifications when UPS status changes
-            </p>
-          </div>
+          
+          {expandedSections.discord && (
+            <div className="mt-2">
+              <DiscordNotificationSettings 
+                settings={settings} 
+                updateSetting={updateSetting} 
+                notificationsEnabled={settings.notifications}
+                setError={setError}
+                setSuccess={setSuccess}
+              />
+            </div>
+          )}
         </div>
         
-        {/* Discord Notifications */}
-        <DiscordNotificationSettings 
-          settings={settings} 
-          updateSetting={updateSetting} 
-          notificationsEnabled={settings.notifications}
-          setError={setError}
-          setSuccess={setSuccess}
-        />
-        
         {/* Slack Notifications */}
-        <SlackNotificationSettings 
-          settings={settings} 
-          updateSetting={updateSetting} 
-          notificationsEnabled={settings.notifications}
-          setError={setError}
-          setSuccess={setSuccess}
-        />
+        <div className="border-t pt-4 dark:border-gray-700">
+          <div 
+            onClick={() => toggleSection('slack')} 
+            className="flex items-center cursor-pointer text-sm font-medium text-gray-900 dark:text-white"
+          >
+            {expandedSections.slack ? 
+              <FiChevronDown className="h-4 w-4 mr-2" /> : 
+              <FiChevronRight className="h-4 w-4 mr-2" />
+            }
+            <span>Slack Notifications</span>
+          </div>
+          
+          {expandedSections.slack && (
+            <div className="mt-2">
+              <SlackNotificationSettings 
+                settings={settings} 
+                updateSetting={updateSetting} 
+                notificationsEnabled={settings.notifications}
+                setError={setError}
+                setSuccess={setSuccess}
+              />
+            </div>
+          )}
+        </div>
         
         {/* Email Notifications */}
-        <EmailNotificationSettings 
-          settings={settings} 
-          updateSetting={updateSetting} 
-          notificationsEnabled={settings.notifications}
-          setError={setError}
-          setSuccess={setSuccess}
-        />
+        <div className="border-t pt-4 dark:border-gray-700">
+          <div 
+            onClick={() => toggleSection('email')} 
+            className="flex items-center cursor-pointer text-sm font-medium text-gray-900 dark:text-white"
+          >
+            {expandedSections.email ? 
+              <FiChevronDown className="h-4 w-4 mr-2" /> : 
+              <FiChevronRight className="h-4 w-4 mr-2" />
+            }
+            <span>Email Notifications</span>
+          </div>
+          
+          {expandedSections.email && (
+            <div className="mt-2">
+              <EmailNotificationSettings 
+                settings={settings} 
+                updateSetting={updateSetting} 
+                notificationsEnabled={settings.notifications}
+                setError={setError}
+                setSuccess={setSuccess}
+              />
+            </div>
+          )}
+        </div>
         
         {/* Notification Types */}
-        <NotificationTypes 
-          settings={settings} 
-          updateSetting={updateSetting} 
-          notificationsEnabled={settings.notifications}
-        />
+        <div className="border-t pt-4 dark:border-gray-700">
+          <div 
+            onClick={() => toggleSection('types')} 
+            className="flex items-center cursor-pointer text-sm font-medium text-gray-900 dark:text-white"
+          >
+            {expandedSections.types ? 
+              <FiChevronDown className="h-4 w-4 mr-2" /> : 
+              <FiChevronRight className="h-4 w-4 mr-2" />
+            }
+            <span>Notification Types</span>
+          </div>
+          
+          {expandedSections.types && (
+            <div className="mt-2">
+              <NotificationTypes 
+                settings={settings} 
+                updateSetting={updateSetting} 
+                notificationsEnabled={settings.notifications}
+              />
+            </div>
+          )}
+        </div>
         
         {/* Save Button */}
         <div className="border-t pt-4 mt-4 dark:border-gray-700">
@@ -127,7 +206,24 @@ const NotificationSettings = ({ setError, setSuccess }) => {
         </div>
         
         {/* Notification History */}
-        <NotificationHistory />
+        <div className="border-t pt-4 dark:border-gray-700">
+          <div 
+            onClick={() => toggleSection('history')} 
+            className="flex items-center cursor-pointer text-sm font-medium text-gray-900 dark:text-white"
+          >
+            {expandedSections.history ? 
+              <FiChevronDown className="h-4 w-4 mr-2" /> : 
+              <FiChevronRight className="h-4 w-4 mr-2" />
+            }
+            <span>Notification History</span>
+          </div>
+          
+          {expandedSections.history && (
+            <div className="mt-2">
+              <NotificationHistory />
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

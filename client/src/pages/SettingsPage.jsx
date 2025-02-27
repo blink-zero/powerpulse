@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiSettings, FiAlertCircle, FiCheck } from 'react-icons/fi';
+import { FiSettings, FiAlertCircle, FiCheck, FiBell, FiUser, FiUsers, FiSliders } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import NotificationSettings from '../components/notifications/NotificationSettings';
@@ -8,11 +8,19 @@ import AccountSettings from '../components/settings/AccountSettings';
 import UserManagement from '../components/settings/UserManagement';
 import ResetSettings from '../components/settings/ResetSettings';
 
+/**
+ * Settings Page Component
+ * 
+ * This component has been refactored to use a tab-based interface to reduce visual clutter
+ * and improve user experience. Each category of settings is now in its own tab.
+ */
 const SettingsPage = () => {
   const { settings } = useSettings();
+  const [activeTab, setActiveTab] = useState('general');
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
   const [pollInterval, setPollInterval] = useState(settings.pollInterval);
+  const { user } = useAuth();
 
   return (
     <div className="space-y-6">
@@ -52,59 +60,104 @@ const SettingsPage = () => {
         </div>
       )}
 
-      {/* Application Settings */}
+      {/* Tabs Navigation */}
+      <div className="border-b border-gray-200 dark:border-gray-700">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('general')}
+            className={`${
+              activeTab === 'general'
+                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+          >
+            <FiSliders className="mr-2 h-4 w-4" />
+            General
+          </button>
+          <button
+            onClick={() => setActiveTab('notifications')}
+            className={`${
+              activeTab === 'notifications'
+                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+          >
+            <FiBell className="mr-2 h-4 w-4" />
+            Notifications
+          </button>
+          <button
+            onClick={() => setActiveTab('account')}
+            className={`${
+              activeTab === 'account'
+                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+          >
+            <FiUser className="mr-2 h-4 w-4" />
+            Account
+          </button>
+          {user && user.isAdmin && (
+            <button
+              onClick={() => setActiveTab('users')}
+              className={`${
+                activeTab === 'users'
+                  ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+            >
+              <FiUsers className="mr-2 h-4 w-4" />
+              User Management
+            </button>
+          )}
+        </nav>
+      </div>
+
+      {/* Tab Content */}
       <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-        <div className="px-4 py-5 sm:px-6 border-b dark:border-gray-700">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Application Settings</h3>
-        </div>
-        <div className="px-4 py-5 sm:p-6">
-          <div className="space-y-6">
-            {/* Polling Settings */}
+        {activeTab === 'general' && (
+          <div className="px-4 py-5 sm:p-6 space-y-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">General Settings</h3>
             <PollingSettings 
               pollInterval={pollInterval} 
               setPollInterval={setPollInterval} 
               setSuccess={setSuccess} 
             />
-
-            {/* Notification Settings */}
-            <NotificationSettings 
-              setError={setError} 
-              setSuccess={setSuccess} 
-            />
-
-            {/* Reset Settings */}
             <ResetSettings 
               setPollInterval={setPollInterval} 
               setSuccess={setSuccess} 
             />
           </div>
-        </div>
-      </div>
-
-      {/* Account Settings */}
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-        <div className="px-4 py-5 sm:px-6 border-b dark:border-gray-700">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Account Settings</h3>
-        </div>
-        <div className="px-4 py-5 sm:p-6">
-          <AccountSettings 
-            setError={setError} 
-            setSuccess={setSuccess} 
-          />
-        </div>
-      </div>
-
-      {/* User Management (Admin only) */}
-      <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-        <div className="px-4 py-5 sm:px-6 border-b dark:border-gray-700">
-          <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">User Management</h3>
-        </div>
-        <div className="px-4 py-5 sm:p-6">
-          <UserManagement 
-            setError={setError} 
-            setSuccess={setSuccess} 
-          />
-        </div>
+        )}
+        
+        {activeTab === 'notifications' && (
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Notification Settings</h3>
+            <NotificationSettings 
+              setError={setError} 
+              setSuccess={setSuccess} 
+            />
+          </div>
+        )}
+        
+        {activeTab === 'account' && (
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Account Settings</h3>
+            <AccountSettings 
+              setError={setError} 
+              setSuccess={setSuccess} 
+            />
+          </div>
+        )}
+        
+        {activeTab === 'users' && user && user.isAdmin && (
+          <div className="px-4 py-5 sm:p-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">User Management</h3>
+            <UserManagement 
+              setError={setError} 
+              setSuccess={setSuccess} 
+            />
+          </div>
+        )}
       </div>
     </div>
   );
