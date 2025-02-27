@@ -215,6 +215,112 @@ router.post('/test-email', authenticateToken, async (req, res) => {
   }
 });
 
+// Debug endpoint to test notifications with specific status
+router.post('/debug-status-notification', authenticateToken, async (req, res) => {
+  const { 
+    status = 'On Battery',
+    previous_status = 'Online',
+    ups_name = 'Test UPS',
+    discord_webhook_url,
+    slack_webhook_url,
+    email_notifications,
+    email_recipients
+  } = req.body;
+  
+  try {
+    let title, description, color;
+    
+    if (status === 'On Battery') {
+      title = '⚡ UPS On Battery';
+      description = `**${ups_name}** is now running on battery power.\nPrevious status: ${previous_status}`;
+      color = '#FFA500'; // Orange
+    } else if (status === 'Low Battery') {
+      title = '🔋 UPS Low Battery Warning';
+      description = `**${ups_name}** has a low battery.\nPrevious status: ${previous_status}`;
+      color = '#FF0000'; // Red
+    } else if (status === 'Online') {
+      title = '✅ UPS Back Online';
+      description = `**${ups_name}** is now back online.\nPrevious status: ${previous_status}`;
+      color = '#00FF00'; // Green
+    } else {
+      title = '🔄 UPS Status Change';
+      description = `**${ups_name}** status changed to ${status}.\nPrevious status: ${previous_status}`;
+      color = '#7289DA'; // Discord blue
+    }
+    
+    // Send notifications to all configured channels
+    const results = {
+      discord: null,
+      slack: null,
+      email: null
+    };
+    
+    console.log('Sending DEBUG UPS status notifications:');
+    console.log(`- Status: ${status}`);
+    console.log(`- Previous status: ${previous_status}`);
+    console.log(`- UPS: ${ups_name}`);
+    
+    // Discord notification
+    if (discord_webhook_url) {
+      console.log(`- Discord webhook configured: ${discord_webhook_url.substring(0, 30)}...`);
+      try {
+        const discordResult = await sendDiscordNotification(discord_webhook_url, { title, description, color });
+        console.log('✅ Discord notification sent successfully');
+        results.discord = { success: true };
+      } catch (err) {
+        console.error('❌ Error sending Discord notification:', err);
+        results.discord = { success: false, error: err.message };
+      }
+    } else {
+      console.log('- No Discord webhook configured');
+    }
+    
+    // Slack notification
+    if (slack_webhook_url) {
+      console.log(`- Slack webhook configured: ${slack_webhook_url.substring(0, 30)}...`);
+      try {
+        const slackResult = await sendSlackNotification(slack_webhook_url, { title, description, color });
+        console.log('✅ Slack notification sent successfully');
+        results.slack = { success: true };
+      } catch (err) {
+        console.error('❌ Error sending Slack notification:', err);
+        results.slack = { success: false, error: err.message };
+      }
+    } else {
+      console.log('- No Slack webhook configured');
+    }
+    
+    // Email notification
+    if (email_notifications && email_recipients) {
+      console.log(`- Email notifications enabled for: ${email_recipients}`);
+      try {
+        const emailResult = await sendEmailNotification(email_recipients, { 
+          title, 
+          description: description.replace(/\*\*/g, '') // Remove Discord markdown
+        });
+        console.log('✅ Email notification sent successfully');
+        results.email = { success: true };
+      } catch (err) {
+        console.error('❌ Error sending email notification:', err);
+        results.email = { success: false, error: err.message };
+      }
+    } else {
+      console.log('- No email notifications configured');
+    }
+    
+    return res.json({ 
+      message: 'Debug notifications processed',
+      results
+    });
+  } catch (error) {
+    console.error('Error sending debug notifications:', error);
+    return res.status(500).json({ 
+      message: 'Error sending debug notifications', 
+      error: error.message 
+    });
+  }
+});
+
 // Get notification history
 router.get('/history', authenticateToken, (req, res) => {
   db.all(
@@ -257,15 +363,15 @@ router.post('/ups-status', authenticateToken, async (req, res) => {
   try {
     let title, description, color;
     
-    if (status.toLowerCase() === 'on battery') {
+    if (status === 'On Battery') {
       title = '⚡ UPS On Battery';
       description = `**${ups_name}** is now running on battery power.\nPrevious status: ${previous_status}`;
       color = '#FFA500'; // Orange
-    } else if (status.toLowerCase() === 'low battery') {
+    } else if (status === 'Low Battery') {
       title = '🔋 UPS Low Battery Warning';
       description = `**${ups_name}** has a low battery.\nPrevious status: ${previous_status}`;
       color = '#FF0000'; // Red
-    } else if (status.toLowerCase() === 'online') {
+    } else if (status === 'Online') {
       title = '✅ UPS Back Online';
       description = `**${ups_name}** is now back online.\nPrevious status: ${previous_status}`;
       color = '#00FF00'; // Green
@@ -276,37 +382,64 @@ router.post('/ups-status', authenticateToken, async (req, res) => {
     }
     
     // Send notifications to all configured channels
-    const notificationPromises = [];
+    const results = {
+      discord: null,
+      slack: null,
+      email: null
+    };
+    
+    console.log('Sending UPS status notifications:');
+    console.log(`- Status: ${status}`);
+    console.log(`- Previous status: ${previous_status}`);
+    console.log(`- UPS: ${ups_name} (ID: ${ups_id})`);
     
     // Discord notification
     if (discord_webhook_url) {
-      notificationPromises.push(
-        sendDiscordNotification(discord_webhook_url, { title, description, color })
-          .catch(err => console.error('Error sending Discord notification:', err))
-      );
+      console.log(`- Discord webhook configured: ${discord_webhook_url.substring(0, 30)}...`);
+      try {
+        const discordResult = await sendDiscordNotification(discord_webhook_url, { title, description, color });
+        console.log('✅ Discord notification sent successfully');
+        results.discord = { success: true };
+      } catch (err) {
+        console.error('❌ Error sending Discord notification:', err);
+        results.discord = { success: false, error: err.message };
+      }
+    } else {
+      console.log('- No Discord webhook configured');
     }
     
     // Slack notification
     if (slack_webhook_url) {
-      notificationPromises.push(
-        sendSlackNotification(slack_webhook_url, { title, description, color })
-          .catch(err => console.error('Error sending Slack notification:', err))
-      );
+      console.log(`- Slack webhook configured: ${slack_webhook_url.substring(0, 30)}...`);
+      try {
+        const slackResult = await sendSlackNotification(slack_webhook_url, { title, description, color });
+        console.log('✅ Slack notification sent successfully');
+        results.slack = { success: true };
+      } catch (err) {
+        console.error('❌ Error sending Slack notification:', err);
+        results.slack = { success: false, error: err.message };
+      }
+    } else {
+      console.log('- No Slack webhook configured');
     }
     
     // Email notification
     if (email_notifications && email_recipients) {
-      notificationPromises.push(
-        sendEmailNotification(email_recipients, { 
+      console.log(`- Email notifications enabled for: ${email_recipients}`);
+      try {
+        const emailResult = await sendEmailNotification(email_recipients, { 
           title, 
           description: description.replace(/\*\*/g, '') // Remove Discord markdown
-        })
-          .catch(err => console.error('Error sending email notification:', err))
-      );
+        });
+        console.log('✅ Email notification sent successfully');
+        results.email = { success: true };
+      } catch (err) {
+        console.error('❌ Error sending email notification:', err);
+        results.email = { success: false, error: err.message };
+      }
+    } else {
+      console.log('- No email notifications configured');
     }
-    
-    // Wait for all notifications to be sent
-    await Promise.allSettled(notificationPromises);
     
     // Log the notification
     db.run(

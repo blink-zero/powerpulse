@@ -206,8 +206,37 @@ async function getNutUpsData(host, port, username, password) {
           };
         }
         
-        // Use the actual status from the UPS
+        // Translate NUT status codes to human-readable format
         let statusDisplay = status;
+        
+        // Common NUT status codes
+        if (status.includes('OL')) {
+          statusDisplay = 'Online';
+        } else if (status.includes('OB')) {
+          statusDisplay = 'On Battery';
+        } else if (status.includes('LB')) {
+          statusDisplay = 'Low Battery';
+        } else if (status.includes('RB')) {
+          statusDisplay = 'Replace Battery';
+        } else if (status.includes('CHRG')) {
+          statusDisplay = 'Charging';
+        } else if (status.includes('DISCHRG')) {
+          statusDisplay = 'Discharging';
+        } else if (status.includes('BYPASS')) {
+          statusDisplay = 'Bypass';
+        } else if (status.includes('CAL')) {
+          statusDisplay = 'Calibration';
+        } else if (status.includes('OFF')) {
+          statusDisplay = 'Off';
+        } else if (status.includes('OVER')) {
+          statusDisplay = 'Overload';
+        } else if (status.includes('TRIM')) {
+          statusDisplay = 'Trimming Voltage';
+        } else if (status.includes('BOOST')) {
+          statusDisplay = 'Boosting Voltage';
+        } else if (status.includes('FSD')) {
+          statusDisplay = 'Forced Shutdown';
+        }
         
         // Create UPS data object with actual values
         const upsData = {

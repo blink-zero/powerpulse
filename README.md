@@ -6,7 +6,26 @@ PowerPulse is a modern UPS monitoring dashboard integrated with Network UPS Tool
 
 The codebase has been enhanced with several code quality and maintainability improvements:
 
-### Recent Improvements (v1.4.0)
+### Recent Improvements (v1.6.0)
+
+#### 1. Consolidated UPS Monitoring System
+- Combined functionality from separate monitoring modules into a single cohesive service
+- Improved reliability with both real-time monitoring and polling-based fallback
+- Enhanced error handling and recovery mechanisms
+- Better logging for troubleshooting
+- Optimized database operations for status tracking
+
+#### 2. Improved Notification System Architecture
+- Refactored notification components into smaller, more focused components:
+  - `DiscordNotificationSettings`: Handles Discord webhook configuration and testing
+  - `SlackNotificationSettings`: Handles Slack webhook configuration and testing
+  - `EmailNotificationSettings`: Handles email notification configuration and testing
+  - `NotificationTypes`: Manages different notification types (battery, low battery)
+  - `NotificationHistory`: Displays history of sent notifications
+- Enhanced user experience with better feedback during notification testing
+- Improved code organization and maintainability
+
+### Previous Improvements (v1.5.1)
 
 #### 1. Extended Notification System
 - Support for multiple notification channels:

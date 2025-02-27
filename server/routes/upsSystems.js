@@ -343,19 +343,36 @@ router.delete('/:id', authenticateToken, (req, res) => {
       return res.status(404).json({ message: 'UPS system not found' });
     }
     
-    // Delete UPS system
-    db.run('DELETE FROM ups_systems WHERE id = ?', [upsId], function(err) {
+    // First delete notification logs
+    db.run('DELETE FROM notification_logs WHERE ups_id = ?', [upsId], function(err) {
       if (err) {
-        return res.status(500).json({ message: 'Error deleting UPS system', error: err.message });
+        console.error(`Error deleting notification logs for UPS ${upsId}:`, err.message);
+        // Continue with deletion even if notification logs deletion fails
       }
       
-      // Delete battery history for this UPS
+      console.log(`Deleted notification logs for UPS ${upsId}`);
+      
+      // Then delete battery history
       db.run('DELETE FROM battery_history WHERE ups_id = ?', [upsId], function(err) {
         if (err) {
           console.error(`Error deleting battery history for UPS ${upsId}:`, err.message);
+          // Continue with deletion even if battery history deletion fails
         }
         
-        return res.json({ message: 'UPS system deleted' });
+        console.log(`Deleted battery history for UPS ${upsId}`);
+        
+        // Finally delete the UPS system itself
+        db.run('DELETE FROM ups_systems WHERE id = ?', [upsId], function(err) {
+          if (err) {
+            return res.status(500).json({ message: 'Error deleting UPS system', error: err.message });
+          }
+          
+          console.log(`Successfully deleted UPS system ${upsId}`);
+          return res.json({ 
+            message: 'UPS system deleted',
+            id: upsId
+          });
+        });
       });
     });
   });

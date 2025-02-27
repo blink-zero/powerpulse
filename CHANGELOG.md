@@ -5,6 +5,81 @@ All notable changes to the PowerPulse project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.6.0] - 2025-02-27
+
+### Added
+- Consolidated UPS monitoring system:
+  - Combined functionality from separate monitoring modules into a single cohesive service
+  - Improved reliability with both real-time monitoring and polling-based fallback
+  - Enhanced error handling and recovery mechanisms
+  - Better logging for troubleshooting
+  - Optimized database operations for status tracking
+
+### Changed
+- Improved notification system architecture:
+  - Refactored notification components into smaller, more focused components
+  - Created dedicated components for different notification channels (Discord, Slack, Email)
+  - Added notification history component for better visibility of past notifications
+  - Improved code organization and maintainability
+  - Enhanced user experience with better feedback during notification testing
+
+### Removed
+- Deprecated upsStatusChecker.js in favor of the consolidated monitoring service
+
+## [1.5.1] - 2025-02-27
+
+### Fixed
+- Fixed issue where UPS status change notifications were not being sent after system restart:
+  - Added database persistence for UPS status tracking using the ups_status table
+  - Updated UPS monitoring system to store and retrieve status from the database
+  - Improved status change detection by using persistent storage instead of in-memory only
+  - Added fallback to in-memory cache when database operations fail
+  - Ensured ups_status table is created during database initialization
+- Fixed issue where notification settings were not being saved to the server's database:
+  - Updated SettingsContext to load notification settings from the server when authenticated
+  - Added functionality to save notification settings to the server when they change
+  - Added explicit "Save Notification Settings" button to ensure settings are saved to the database
+  - Added visual feedback during the save process
+  - Ensured notification settings are properly synchronized between client and server
+  - Fixed "No users with notifications enabled" issue by properly saving settings to the database
+  - Added database migration system to apply pending migrations
+  - Fixed missing columns in notification_settings table by applying migrations
+  - Added direct column addition to ensure required columns exist in notification_settings table
+  - Updated notification_settings table schema to include all required columns by default
+
+## [1.5.0] - 2025-02-27
+
+### Fixed
+- Fixed issue where UPS systems were not being added to the database after initial setup:
+  - Improved UPS registration process to check for existing entries before attempting to create new ones
+  - Added better error handling for database operations during UPS registration
+  - Implemented fallback mechanism for when NUT client is not available
+  - Added support for handling concurrent registration attempts to prevent duplicate entries
+  - Added automatic UPS discovery and registration when adding a new NUT server
+  - Added automatic UPS discovery and registration during initial application setup
+
+### Changed
+- Enhanced UPS monitoring system:
+  - Improved reliability of UPS detection and registration
+  - Added more detailed logging for troubleshooting
+  - Optimized database queries for better performance
+  - Added detailed response data for NUT server operations including discovered UPS systems
+- Removed setup-database.sh script:
+  - Integrated database directory and file creation into the main application
+  - Automatically set secure permissions when the application starts
+  - Simplified installation process by removing manual setup step
+- Fixed database file location consistency:
+  - Ensured database file is always created in the server/data directory
+  - Added logging of database paths for easier troubleshooting
+  - Fixed issue where database file was created in different locations when running locally vs. in Docker
+
+### Security
+- Improved database file permissions:
+  - Changed data directory permissions from 777 (rwxrwxrwx) to 750 (rwxr-x---)
+  - Changed database file permissions from 666 (rw-rw-rw-) to 640 (rw-r-----)
+  - Updated docker-entrypoint.sh script with more secure permissions
+  - Integrated permission setting into the database initialization process
+
 ## [1.4.0] - 2025-02-27
 
 ### Added

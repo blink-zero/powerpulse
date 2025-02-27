@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FiSettings, FiAlertCircle, FiCheck } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
-import NotificationSettings from '../components/settings/NotificationSettings';
+import NotificationSettings from '../components/notifications/NotificationSettings';
 import PollingSettings from '../components/settings/PollingSettings';
 import AccountSettings from '../components/settings/AccountSettings';
 import UserManagement from '../components/settings/UserManagement';

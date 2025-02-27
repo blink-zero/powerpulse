@@ -18,8 +18,28 @@ export const useNotifications = (upsSystems, loading) => {
   useEffect(() => {
     if (!upsSystems.length || loading) return;
 
-    // Check if notifications are enabled
-    if (!settings.notifications || !settings.discordWebhookUrl) return;
+    console.log('Checking for UPS status changes...');
+    console.log('UPS Systems:', upsSystems.map(ups => ({
+      id: ups.id,
+      name: ups.name || ups.displayName,
+      status: ups.status
+    })));
+    console.log('Notification settings:', {
+      enabled: settings.notifications,
+      batteryNotifications: settings.batteryNotifications,
+      lowBatteryNotifications: settings.lowBatteryNotifications,
+      discordWebhook: settings.discordWebhookUrl ? 'Configured' : 'Not configured',
+      slackWebhook: settings.slackWebhookUrl ? 'Configured' : 'Not configured',
+      emailNotifications: settings.emailNotifications
+    });
+
+    // Check if notifications are enabled and at least one notification method is configured
+    if (!settings.notifications || 
+        !(settings.discordWebhookUrl || settings.slackWebhookUrl || 
+          (settings.emailNotifications && settings.emailRecipients))) {
+      console.log('Notifications are disabled or no notification methods configured');
+      return;
+    }
 
     // Check for status changes
     upsSystems.forEach(ups => {
@@ -36,15 +56,31 @@ export const useNotifications = (upsSystems, loading) => {
 
       // Check for status changes
       if (prevState.status !== ups.status) {
+        console.log(`UPS ${ups.id} (${ups.displayName || ups.name}) status changed from "${prevState.status}" to "${ups.status}"`);
+        
         // Check if notifications are enabled for this status change
-        if ((settings.batteryNotifications && 
-             ups.status?.toLowerCase() === 'on battery' && 
-             prevState.status?.toLowerCase() !== 'on battery') ||
-            (settings.lowBatteryNotifications && 
-             ups.status?.toLowerCase() === 'low battery' && 
-             prevState.status?.toLowerCase() !== 'low battery') ||
-            (ups.status?.toLowerCase() === 'online' && 
-             prevState.status?.toLowerCase() !== 'online')) {
+        // Match the case used in nutClient.js status translation
+        const isBatteryNotification = settings.batteryNotifications && 
+                                     ups.status === 'On Battery' && 
+                                     prevState.status !== 'On Battery';
+        
+        const isLowBatteryNotification = settings.lowBatteryNotifications && 
+                                        ups.status === 'Low Battery' && 
+                                        prevState.status !== 'Low Battery';
+        
+        const isOnlineNotification = ups.status === 'Online' && 
+                                    prevState.status !== 'Online';
+        
+        console.log('Notification conditions:', {
+          isBatteryNotification,
+          isLowBatteryNotification,
+          isOnlineNotification,
+          batteryNotificationsEnabled: settings.batteryNotifications,
+          lowBatteryNotificationsEnabled: settings.lowBatteryNotifications
+        });
+        
+        if (isBatteryNotification || isLowBatteryNotification || isOnlineNotification) {
+          console.log(`Sending notification for UPS ${ups.id} status change to ${ups.status}`);
           
           // Create notification object
           const notification = {
@@ -71,7 +107,8 @@ export const useNotifications = (upsSystems, loading) => {
         batteryCharge: ups.batteryCharge
       };
     });
-  }, [upsSystems, settings.notifications, settings.batteryNotifications, settings.lowBatteryNotifications, settings.discordWebhookUrl, loading]);
+  }, [upsSystems, settings.notifications, settings.batteryNotifications, settings.lowBatteryNotifications, 
+      settings.discordWebhookUrl, settings.slackWebhookUrl, settings.emailNotifications, settings.emailRecipients, loading]);
 
   /**
    * Send notification to server
@@ -79,7 +116,8 @@ export const useNotifications = (upsSystems, loading) => {
    */
   const sendNotification = async (notification) => {
     try {
-      await axios.post('/api/notifications/ups-status', {
+      console.log('Sending notification to server:', notification);
+      const response = await axios.post('/api/notifications/ups-status', {
         ups_id: notification.ups_id,
         ups_name: notification.ups_name,
         status: notification.status,
@@ -89,6 +127,7 @@ export const useNotifications = (upsSystems, loading) => {
         email_notifications: settings.emailNotifications,
         email_recipients: settings.emailRecipients
       });
+      console.log('Notification sent successfully:', response.data);
     } catch (error) {
       console.error('Error sending notification:', error);
     }

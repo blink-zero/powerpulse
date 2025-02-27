@@ -59,5 +59,23 @@ fi
 echo "Environment validation completed successfully."
 echo "=================================================="
 
+# Ensure data directory exists and has correct permissions
+echo "Setting up database directory and permissions..."
+mkdir -p /app/data
+chmod 750 /app/data
+
+# Check if database file exists, create it if it doesn't
+if [ -f "/app/data/database.sqlite" ]; then
+  echo "Database file exists, setting permissions..."
+  chmod 640 /app/data/database.sqlite
+else
+  echo "Database file does not exist, creating it..."
+  touch /app/data/database.sqlite
+  chmod 640 /app/data/database.sqlite
+fi
+
+echo "Database setup completed."
+echo "=================================================="
+
 # Execute the CMD
 exec "$@"

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FiBattery, FiAlertCircle, FiServer, FiBell, FiClock } from 'react-icons/fi';
+import { FiBattery, FiAlertCircle, FiServer } from 'react-icons/fi';
 import { useSettings } from '../context/SettingsContext';
 import { useNotifications } from '../hooks/useNotifications';
 
@@ -10,22 +10,16 @@ const UPSSystemsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [nutServers, setNutServers] = useState([]);
-  const [showNotificationHistory, setShowNotificationHistory] = useState(false);
+  // Notification history panel removed as per user request
   const pollingInterval = useRef(null);
   
-  // Use our custom notifications hook
-  const { 
-    notificationHistory, 
-    notificationCount, 
-    clearNotificationHistory, 
-    fetchNotificationHistory 
-  } = useNotifications(upsSystems, loading);
+  // Still using notifications hook for background monitoring, but UI elements removed
+  useNotifications(upsSystems, loading);
 
   // Initial data fetch
   useEffect(() => {
     fetchUpsSystems();
     fetchNutServers();
-    fetchNotificationHistory();
 
     // Set up polling interval
     pollingInterval.current = setInterval(() => {
@@ -113,21 +107,6 @@ const UPSSystemsPage = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">UPS Systems</h1>
-        
-        {settings.notifications && (
-          <button
-            onClick={() => setShowNotificationHistory(!showNotificationHistory)}
-            className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 relative"
-          >
-            <FiBell className="mr-2 -ml-1 h-4 w-4" />
-            Notifications
-            {notificationCount > 0 && (
-              <span className="absolute -top-2 -right-2 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
-                {notificationCount}
-              </span>
-            )}
-          </button>
-        )}
       </div>
 
       {error && (
@@ -146,66 +125,7 @@ const UPSSystemsPage = () => {
         </div>
       )}
 
-      {/* Notification History Panel */}
-      {showNotificationHistory && (
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-          <div className="px-4 py-5 sm:px-6 border-b dark:border-gray-700 flex justify-between items-center">
-            <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Notification History</h3>
-            <div className="flex space-x-2">
-              <button
-                onClick={fetchNotificationHistory}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              >
-                <FiRefreshCw className="mr-2 -ml-1 h-4 w-4" />
-                Refresh
-              </button>
-              <button
-                onClick={clearNotificationHistory}
-                className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
-              >
-                <FiX className="mr-2 -ml-1 h-4 w-4" />
-                Clear
-              </button>
-            </div>
-          </div>
-          <div className="px-4 py-5 sm:p-6">
-            {notificationHistory.length === 0 ? (
-              <p className="text-gray-500 dark:text-gray-400">No notifications yet.</p>
-            ) : (
-              <div className="overflow-y-auto max-h-96">
-                <ul className="space-y-4">
-                  {notificationHistory.map((notification) => (
-                    <li key={notification.id} className="border-l-4 pl-4 py-2" style={{ 
-                      borderColor: notification.status?.toLowerCase() === 'online' 
-                        ? '#10B981' 
-                        : notification.status?.toLowerCase() === 'on battery'
-                          ? '#F59E0B'
-                          : notification.status?.toLowerCase() === 'low battery'
-                            ? '#EF4444'
-                            : '#6B7280'
-                    }}>
-                      <div className="flex items-start justify-between">
-                        <div>
-                          <p className="text-sm font-medium text-gray-900 dark:text-white">
-                            {notification.ups_name}: {notification.status}
-                          </p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">
-                            Previous status: {notification.previous_status}
-                          </p>
-                        </div>
-                        <div className="flex items-center text-xs text-gray-500 dark:text-gray-400">
-                          <FiClock className="mr-1 h-3 w-3" />
-                          {new Date(notification.timestamp).toLocaleString()}
-                        </div>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Notification panel removed as per user request */}
 
       {upsSystems.length === 0 ? (
         <div className="text-center py-12 bg-white dark:bg-gray-800 shadow rounded-lg">

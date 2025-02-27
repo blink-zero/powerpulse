@@ -1,10 +1,41 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { FiBell, FiMail, FiSlack } from 'react-icons/fi';
+import { FiBell, FiMail, FiSlack, FiSave } from 'react-icons/fi';
 import { useSettings } from '../../context/SettingsContext';
 
 const NotificationSettings = ({ setError, setSuccess }) => {
   const { settings, updateSetting } = useSettings();
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Function to save notification settings to the server
+  const handleSaveSettings = async () => {
+    setIsSaving(true);
+    try {
+      // Convert client settings format to server format
+      const serverSettings = {
+        discord_webhook_url: settings.discordWebhookUrl,
+        slack_webhook_url: settings.slackWebhookUrl,
+        notifications_enabled: settings.notifications,
+        battery_notifications: settings.batteryNotifications,
+        low_battery_notifications: settings.lowBatteryNotifications,
+        email_notifications: settings.emailNotifications,
+        email_recipients: settings.emailRecipients
+      };
+
+      // Send settings to server
+      const response = await axios.post('/api/notifications/settings', serverSettings);
+      
+      setSuccess('Notification settings saved successfully');
+      setTimeout(() => setSuccess(null), 3000);
+      console.log('Saved notification settings to server:', response.data);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Failed to save notification settings');
+      setTimeout(() => setError(null), 5000);
+      console.error('Error saving settings to server:', err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleTestDiscordWebhook = async () => {
     if (!settings.discordWebhookUrl) {
@@ -277,6 +308,21 @@ const NotificationSettings = ({ setError, setSuccess }) => {
               </p>
             </div>
           </div>
+        </div>
+        
+        {/* Save Button */}
+        <div className="border-t pt-4 mt-4 dark:border-gray-700">
+          <button
+            onClick={handleSaveSettings}
+            disabled={isSaving}
+            className="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <FiSave className="mr-2 -ml-1 h-5 w-5" />
+            {isSaving ? 'Saving...' : 'Save Notification Settings'}
+          </button>
+          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            Click to save your notification settings to the server. This is required for notifications to work.
+          </p>
         </div>
       </div>
     </div>

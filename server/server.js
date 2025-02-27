@@ -1,12 +1,18 @@
 const app = require('./app');
 const axios = require('axios');
 const { recordBatteryHistory } = require('./utils/batteryHistoryRecorder');
+const { initUpsMonitoring, stopUpsMonitoring } = require('./utils/upsMonitoringService');
 
 const PORT = process.env.PORT || 5000;
 
 // Start the server
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  
+  // Initialize the UPS monitoring system
+  initUpsMonitoring().catch(err => {
+    console.error('Failed to initialize UPS monitoring:', err);
+  });
 });
 
 // Set up periodic battery history recording
@@ -33,6 +39,10 @@ setInterval(async () => {
 // Handle graceful shutdown
 process.on('SIGTERM', () => {
   console.log('SIGTERM signal received: closing HTTP server');
+  
+  // Stop the UPS monitoring system
+  stopUpsMonitoring();
+  
   server.close(() => {
     console.log('HTTP server closed');
   });
@@ -40,6 +50,10 @@ process.on('SIGTERM', () => {
 
 process.on('SIGINT', () => {
   console.log('SIGINT signal received: closing HTTP server');
+  
+  // Stop the UPS monitoring system
+  stopUpsMonitoring();
+  
   server.close(() => {
     console.log('HTTP server closed');
   });
