@@ -1,0 +1,68 @@
+version: '3.8'
+
+services:
+  server:
+    build: ./server
+    container_name: powerpulse-server
+    restart: unless-stopped
+    command: ["node", "server.js"]
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./server/data:/app/data
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - JWT_SECRET=${JWT_SECRET:-change_this_to_a_secure_random_string}
+      - DEFAULT_NUT_HOST=${DEFAULT_NUT_HOST:-host.docker.internal}
+      - DEFAULT_NUT_PORT=${DEFAULT_NUT_PORT:-3493}
+      - DEFAULT_NUT_USERNAME=${DEFAULT_NUT_USERNAME:-}
+      - DEFAULT_NUT_PASSWORD=${DEFAULT_NUT_PASSWORD:-}
+      - NUT_CONNECTION_TIMEOUT=${NUT_CONNECTION_TIMEOUT:-5000}
+      - NUT_RETRY_ATTEMPTS=${NUT_RETRY_ATTEMPTS:-3}
+      - NUT_RETRY_DELAY=${NUT_RETRY_DELAY:-1000}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      # Email configuration
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SMTP_FROM=${SMTP_FROM:-powerpulse@example.com}
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost:5000/api/auth/check-setup || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - powerpulse-network
+
+  client:
+    build: ./client
+    container_name: powerpulse-client
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      server:
+        condition: service_healthy
+    environment:
+      - SERVER_HOST=server
+      - SERVER_PORT=5000
+      - ENABLE_HTTPS=false
+    healthcheck:
+      test: ["CMD", "sh", "-c", "wget --no-verbose --tries=1 --spider http://localhost/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - powerpulse-network
+
+networks:
+  powerpulse-network:
+    driver: bridge
+
+volumes:
+  data:
+    driver: local

@@ -1,0 +1,34 @@
+{
+  "name": "powerpulse",
+  "version": "1.4.0",
+  "description": "Modern UPS monitoring dashboard integrated with Network UPS Tools (NUT)",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "server": "cd server && npm run dev",
+    "client": "cd client && npm run dev",
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "install-all": "npm install && cd server && npm install && cd ../client && npm install",
+    "build": "cd client && npm run build",
+    "prod": "cd server && NODE_ENV=production npm start"
+  },
+  "keywords": [
+    "ups",
+    "nut",
+    "monitoring",
+    "dashboard",
+    "power",
+    "react",
+    "node"
+  ],
+  "author": "blink-zero",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/blink-zero/powerpulse.git"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^8.0.1"
+  },
+  "dependencies": {}
+}
