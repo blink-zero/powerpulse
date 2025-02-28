@@ -6,6 +6,8 @@
 
 PowerPulse is a modern UPS (Uninterruptible Power Supply) monitoring dashboard integrated with Network UPS Tools (NUT). It provides a clean, responsive interface for monitoring and managing your UPS systems.
 
+![PowerPulse Demo](assets/images/PowerPulse_demo.gif)
+
 ## Why Use PowerPulse?
 
 - **Real-time Monitoring**: Keep track of your UPS systems' status, battery levels, and power conditions in real-time
@@ -34,6 +36,8 @@ PowerPulse is a modern UPS (Uninterruptible Power Supply) monitoring dashboard i
 
 ```
 powerpulse/
+├── assets/                 # Static assets
+│   └── images/             # Image files including demo GIF
 ├── client/                 # Frontend code
 │   ├── public/             # Static assets
 │   └── src/
