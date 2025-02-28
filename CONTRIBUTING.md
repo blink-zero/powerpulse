@@ -105,12 +105,43 @@ Common types are:
 
 ## Testing Your Stuff
 
-- Try to write tests for new features
-- Run the existing tests before submitting:
-  ```
-  npm test
-  ```
+We have a comprehensive testing setup with Jest for the server and Vitest for the client:
+
+### Client Testing
+- Run client tests: `cd client && npm test`
+- Watch mode: `cd client && npm run test:watch`
+- Coverage report: `cd client && npm run test:coverage`
+
+### Server Testing
+- Run server tests: `cd server && npm test`
+- Watch mode: `cd server && npm run test:watch`
+- Coverage report: `cd server && npm run test:coverage`
+
+### Writing Tests
+- Client tests go in `client/src/test` or alongside components with `.test.jsx` extension
+- Server tests go in `server/tests` with `.test.js` extension
+- Focus on testing functionality, not implementation details
 - Don't worry about 100% coverage - just test the important parts
+
+## Linting
+
+We use ESLint to maintain code quality:
+
+- Lint client code: `cd client && npm run lint`
+- Fix client code: `cd client && npm run lint:fix`
+- Lint server code: `cd server && npm run lint`
+- Fix server code: `cd server && npm run lint:fix`
+
+## CI/CD Pipeline
+
+We use GitHub Actions for our CI/CD pipeline:
+
+- Every PR and push to main/develop branches triggers the pipeline
+- The pipeline runs linting, tests, and builds the application
+- All checks must pass before a PR can be merged
+- Tagged releases are automatically built and prepared for deployment
+
+When you submit a PR, check the GitHub Actions tab to see if your changes pass all checks.
 
 ## Updating Docs
 
