@@ -233,7 +233,7 @@ const Dashboard = () => {
                       <p className="text-sm text-gray-500 dark:text-gray-400">Model: {selectedUps.model}</p>
                     )}
                     <p className="text-xs text-gray-500 dark:text-gray-400">
-                      Brand: {selectedUps.brand || 'Unknown'} | Serial: {selectedUps.serial || 'Unknown'}
+                      Brand: {selectedUps.deviceDetails?.mfr || selectedUps.brand || 'Unknown'} | Serial: {selectedUps.deviceDetails?.serial || selectedUps.serial || 'Unknown'}
                     </p>
                   </div>
                   <span

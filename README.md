@@ -6,7 +6,22 @@ PowerPulse is a modern UPS monitoring dashboard integrated with Network UPS Tool
 
 The codebase has been enhanced with several code quality and maintainability improvements:
 
-### Recent Improvements (v1.6.0)
+### Recent Improvements (v1.7.0)
+
+#### 1. Extended UPS Systems Details View
+- Added comprehensive UPS information display with all available NUT server data
+- Implemented expandable card interface for each UPS system
+- Organized UPS data into logical categories:
+  - Battery details (charge, voltage, runtime, type, etc.)
+  - Device information (manufacturer, model, serial, type)
+  - Driver details (name, version, parameters)
+  - Input/Output details (voltage, nominal values)
+  - UPS-specific details (status, load, beeper status, etc.)
+- Enhanced user experience with collapsible sections for detailed information
+- Maintained key metrics visibility in the summary view
+- Improved visual presentation with organized data tables
+
+### Previous Improvements (v1.6.0)
 
 #### 1. Consolidated UPS Monitoring System
 - Combined functionality from separate monitoring modules into a single cohesive service

@@ -5,6 +5,35 @@ All notable changes to the PowerPulse project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.7.0] - 2025-02-28
+
+### Added
+- Extended UPS Systems details view:
+  - Added detailed UPS information from NUT server
+  - Implemented expandable card interface for each UPS
+  - Added comprehensive battery details section
+  - Added device information section
+  - Added driver details section
+  - Added input/output voltage information
+  - Added UPS-specific details section
+  - Improved visual presentation with organized data tables
+  - Enhanced user experience with collapsible sections
+
+### Changed
+- Redesigned UPS Systems page:
+  - Replaced table view with detailed card layout
+  - Improved visual hierarchy with summary and detail sections
+  - Enhanced readability with categorized information
+  - Added expand/collapse functionality for detailed information
+  - Maintained key metrics visibility in the summary view
+
+### Technical
+- Enhanced server-side NUT client:
+  - Added support for retrieving all available UPS variables
+  - Improved data organization with categorized details
+  - Added structured data format for better frontend integration
+  - Maintained backward compatibility with existing code
+
 ## [1.6.0] - 2025-02-27
 
 ### Added

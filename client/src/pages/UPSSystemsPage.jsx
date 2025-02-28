@@ -1,8 +1,365 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FiBattery, FiAlertCircle, FiServer } from 'react-icons/fi';
+import { FiBattery, FiAlertCircle, FiServer, FiChevronDown, FiChevronUp, FiInfo } from 'react-icons/fi';
 import { useSettings } from '../context/SettingsContext';
 import { useNotifications } from '../hooks/useNotifications';
+
+// UPS Detail Card Component
+const UpsDetailCard = ({ ups, nutServerName }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  const getStatusColor = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'online':
+        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300';
+      case 'on battery':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300';
+      case 'low battery':
+        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300';
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+    }
+  };
+
+  const getBatteryLevelColor = (level) => {
+    if (level >= 75) return 'bg-green-500';
+    if (level >= 50) return 'bg-blue-500';
+    if (level >= 25) return 'bg-yellow-500';
+    return 'bg-red-500';
+  };
+
+  return (
+    <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+      {/* UPS Summary Header */}
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="flex justify-between items-center">
+          <div className="flex items-center">
+            <FiBattery className="h-6 w-6 text-primary-600 mr-3" />
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                {ups.displayName || ups.name}
+              </h3>
+              <div className="flex items-center mt-1 space-x-3">
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(ups.status)}`}>
+                  {ups.status || 'Unknown'}
+                </span>
+                <span className="text-sm text-gray-500 dark:text-gray-400">
+                  {ups.deviceDetails?.model || ups.model || 'Unknown Model'}
+                </span>
+                <span className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
+                  <FiServer className="h-3 w-3 mr-1" />
+                  {nutServerName}
+                </span>
+              </div>
+              <div className="flex items-center mt-1 space-x-3">
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  Brand: {ups.deviceDetails?.mfr || ups.brand || 'Unknown'}
+                </span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  S/N: {ups.deviceDetails?.serial || ups.serial || 'Unknown'}
+                </span>
+              </div>
+            </div>
+          </div>
+          <button
+            onClick={() => setExpanded(!expanded)}
+            className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
+            aria-expanded={expanded}
+            aria-label={expanded ? "Collapse details" : "Expand details"}
+          >
+            {expanded ? <FiChevronUp /> : <FiChevronDown />}
+          </button>
+        </div>
+
+        {/* Key Metrics */}
+        <div className="grid grid-cols-3 gap-4 mt-4">
+          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Battery</div>
+            <div className="mt-1 flex items-center">
+              <div className="text-xl font-semibold text-gray-900 dark:text-white">{ups.batteryCharge}%</div>
+              <div className="ml-2 w-24 h-2 bg-gray-200 dark:bg-gray-600 rounded-full">
+                <div
+                  className={`h-2 rounded-full ${getBatteryLevelColor(ups.batteryCharge)}`}
+                  style={{ width: `${ups.batteryCharge}%` }}
+                ></div>
+              </div>
+            </div>
+          </div>
+          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Load</div>
+            <div className="text-xl font-semibold text-gray-900 dark:text-white">{ups.load}%</div>
+          </div>
+          <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+            <div className="text-sm font-medium text-gray-500 dark:text-gray-400">Runtime</div>
+            <div className="text-xl font-semibold text-gray-900 dark:text-white">{ups.runtimeRemaining} min</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Expanded Details */}
+      {expanded && (
+        <div className="p-4 bg-gray-50 dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Battery Details */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center">
+                <FiBattery className="mr-2" /> Battery Details
+              </h4>
+              <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
+                    {ups.batteryDetails && (
+                      <>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Charge</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.batteryDetails.charge}%</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Charge Low</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.batteryDetails.chargeLow}%</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Charge Warning</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.batteryDetails.chargeWarning}%</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Manufacturer Date</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.batteryDetails.mfrDate}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Runtime</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.batteryDetails.runtime} sec</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Runtime Low</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.batteryDetails.runtimeLow} sec</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Type</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.batteryDetails.type}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Voltage</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.batteryDetails.voltage} V</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Voltage Nominal</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.batteryDetails.voltageNominal} V</td>
+                        </tr>
+                      </>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Device Details */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center">
+                <FiInfo className="mr-2" /> Device Details
+              </h4>
+              <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
+                    {ups.deviceDetails && (
+                      <>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Manufacturer</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.deviceDetails.mfr}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Model</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.deviceDetails.model}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Serial</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.deviceDetails.serial}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Type</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.deviceDetails.type}</td>
+                        </tr>
+                      </>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Input/Output Details */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center">
+                <FiInfo className="mr-2" /> Input/Output Details
+              </h4>
+              <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
+                    {ups.inputDetails && (
+                      <>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Input Voltage</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.inputDetails.voltage} V</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Input Voltage Nominal</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.inputDetails.voltageNominal} V</td>
+                        </tr>
+                      </>
+                    )}
+                    {ups.outputDetails && (
+                      <tr>
+                        <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Output Voltage</td>
+                        <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.outputDetails.voltage} V</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* UPS Details */}
+            <div>
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center">
+                <FiInfo className="mr-2" /> UPS Details
+              </h4>
+              <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
+                    {ups.upsDetails && (
+                      <>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Beeper Status</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.upsDetails.beeperStatus}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Delay Shutdown</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.upsDetails.delayShutdown} sec</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Delay Start</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.upsDetails.delayStart} sec</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Load</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.upsDetails.load}%</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Manufacturer</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.upsDetails.mfr}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Model</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.upsDetails.model}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Product ID</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.upsDetails.productid}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Realpower Nominal</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.upsDetails.realpowerNominal} W</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Serial</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.upsDetails.serial}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Status</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.upsDetails.status}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Test Result</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.upsDetails.testResult}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Timer Shutdown</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.upsDetails.timerShutdown} sec</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Timer Start</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.upsDetails.timerStart} sec</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Vendor ID</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.upsDetails.vendorid}</td>
+                        </tr>
+                      </>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Driver Details */}
+            <div className="md:col-span-2">
+              <h4 className="text-sm font-medium text-gray-900 dark:text-white mb-3 flex items-center">
+                <FiInfo className="mr-2" /> Driver Details
+              </h4>
+              <div className="bg-white dark:bg-gray-700 rounded-lg shadow-sm overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-600">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-600">
+                    {ups.driverDetails && (
+                      <>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Name</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.driverDetails.name}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Parameter Poll Frequency</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.driverDetails.parameterPollfreq}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Parameter Poll Interval</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.driverDetails.parameterPollinterval}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Parameter Port</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.driverDetails.parameterPort}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Parameter Product ID</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.driverDetails.parameterProductid}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Parameter Serial</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.driverDetails.parameterSerial}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Parameter Synchronous</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.driverDetails.parameterSynchronous}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Parameter Vendor ID</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.driverDetails.parameterVendorid}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Version</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.driverDetails.version}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Version Data</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.driverDetails.versionData}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Version Internal</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.driverDetails.versionInternal}</td>
+                        </tr>
+                        <tr>
+                          <td className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">Version USB</td>
+                          <td className="px-4 py-2 text-sm text-gray-900 dark:text-white">{ups.driverDetails.versionUsb}</td>
+                        </tr>
+                      </>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const UPSSystemsPage = () => {
   const { settings, getPollIntervalMs } = useSettings();
@@ -21,9 +378,10 @@ const UPSSystemsPage = () => {
     fetchUpsSystems();
     fetchNutServers();
 
-    // Set up polling interval
+    // Set up polling interval - only for background monitoring, not UI updates
     pollingInterval.current = setInterval(() => {
-      fetchUpsSystems();
+      // Use a silent fetch that doesn't trigger loading state or UI updates
+      silentFetchUpsSystems();
     }, getPollIntervalMs());
 
     // Clean up interval on unmount
@@ -41,7 +399,8 @@ const UPSSystemsPage = () => {
     }
     
     pollingInterval.current = setInterval(() => {
-      fetchUpsSystems();
+      // Use a silent fetch that doesn't trigger loading state or UI updates
+      silentFetchUpsSystems();
     }, getPollIntervalMs());
     
     return () => {
@@ -51,6 +410,26 @@ const UPSSystemsPage = () => {
     };
   }, [getPollIntervalMs]);
 
+  // Silent fetch function that doesn't trigger loading state
+  const silentFetchUpsSystems = async () => {
+    try {
+      const response = await axios.get('/api/ups/systems');
+      
+      // Only update state if there are meaningful changes
+      if (JSON.stringify(response.data) !== JSON.stringify(upsSystems)) {
+        setUpsSystems(response.data);
+      }
+      
+      if (error) {
+        setError(null);
+      }
+    } catch (err) {
+      console.error('Error silently fetching UPS systems:', err);
+      // Don't update error state to avoid UI disruption
+    }
+  };
+
+  // Regular fetch function with loading state - used for initial load and manual refreshes
   const fetchUpsSystems = async () => {
     try {
       setLoading(true);
@@ -136,88 +515,10 @@ const UPSSystemsPage = () => {
           </p>
         </div>
       ) : (
-        <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead className="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Name
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  NUT Server
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Status
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Battery
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Load
-                </th>
-                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Runtime
-                </th>
-              </tr>
-            </thead>
-            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              {upsSystems.map((ups, index) => (
-                <tr key={ups.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <FiBattery className="h-5 w-5 text-primary-600 mr-2" />
-                      <div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {ups.displayName || ups.name}
-                        </div>
-                        {ups.model && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400">
-                            {ups.model}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="flex items-center">
-                      <FiServer className="h-4 w-4 text-gray-500 mr-2" />
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {getNutServerName(ups.nutServerId)}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(ups.status)}`}>
-                      {ups.status || 'Unknown'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900 dark:text-white">{ups.batteryCharge}%</div>
-                    <div className="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full mt-1">
-                      <div
-                        className={`h-2 rounded-full ${
-                          ups.batteryCharge > 75
-                            ? 'bg-green-500'
-                            : ups.batteryCharge > 50
-                            ? 'bg-blue-500'
-                            : ups.batteryCharge > 25
-                            ? 'bg-yellow-500'
-                            : 'bg-red-500'
-                        }`}
-                        style={{ width: `${ups.batteryCharge}%` }}
-                      ></div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {ups.load}%
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                    {ups.runtimeRemaining} min
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="space-y-6">
+          {upsSystems.map((ups, index) => (
+            <UpsDetailCard key={ups.id} ups={ups} nutServerName={getNutServerName(ups.nutServerId)} />
+          ))}
         </div>
       )}
     </div>

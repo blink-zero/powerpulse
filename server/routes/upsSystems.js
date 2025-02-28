@@ -80,7 +80,15 @@ router.get('/', authenticateToken, async (req, res) => {
                   outputVoltage: liveUps.outputVoltage,
                   runtimeRemaining: liveUps.runtimeRemaining,
                   load: liveUps.load,
-                  temperature: liveUps.temperature
+                  temperature: liveUps.temperature,
+                  // Include extended details
+                  batteryDetails: liveUps.batteryDetails,
+                  deviceDetails: liveUps.deviceDetails,
+                  driverDetails: liveUps.driverDetails,
+                  inputDetails: liveUps.inputDetails,
+                  outputDetails: liveUps.outputDetails,
+                  upsDetails: liveUps.upsDetails,
+                  rawVariables: liveUps.rawVariables
                 };
               } else {
                 // Return basic info if live data not available
@@ -208,7 +216,15 @@ router.get('/:id', authenticateToken, async (req, res) => {
             outputVoltage: matchingUps.outputVoltage,
             runtimeRemaining: matchingUps.runtimeRemaining,
             load: matchingUps.load,
-            temperature: matchingUps.temperature
+            temperature: matchingUps.temperature,
+            // Include extended details
+            batteryDetails: matchingUps.batteryDetails,
+            deviceDetails: matchingUps.deviceDetails,
+            driverDetails: matchingUps.driverDetails,
+            inputDetails: matchingUps.inputDetails,
+            outputDetails: matchingUps.outputDetails,
+            upsDetails: matchingUps.upsDetails,
+            rawVariables: matchingUps.rawVariables
           });
         } catch (error) {
           console.error('Error getting UPS data:', error);
