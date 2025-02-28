@@ -25,6 +25,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved session management to reduce risk of unauthorized access
 
 ### Documentation
+- Added comprehensive API documentation (API.md)
+  - Detailed all available API endpoints
+  - Included request/response examples for each endpoint
+  - Added authentication information
 - Added comprehensive Docker setup guide
 - Added timezone configuration instructions
 - Improved environment variable documentation
