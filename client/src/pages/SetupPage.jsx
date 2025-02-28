@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FiActivity, FiLock, FiUser, FiServer, FiAlertCircle } from 'react-icons/fi';
+import appConfig from '../config/appConfig';
 
 const SetupPage = () => {
   const [step, setStep] = useState(1);
@@ -151,18 +152,18 @@ const SetupPage = () => {
           <div className="flex justify-center">
             <FiActivity className="h-12 w-12 text-primary-600" />
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">PowerPulse</h2>
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">{appConfig.appName}</h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             First-time setup - Let's get your UPS monitoring dashboard ready
           </p>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-            v1.8.1 by <a
-              href="https://github.com/blink-zero" 
+            v{appConfig.version} by <a
+              href={`https://github.com/${appConfig.copyrightOwner}`}
               target="_blank" 
               rel="noopener noreferrer"
               className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
             >
-              blink-zero
+              {appConfig.copyrightOwner}
             </a>
           </p>
         </div>

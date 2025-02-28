@@ -1,5 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import axios from 'axios';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import useInactivityTimer from '../hooks/useInactivityTimer';
+import { authAPI } from '../services/api';
+import axios from 'axios'; // Still needed for setting default headers
 
 const AuthContext = createContext();
 
@@ -10,7 +12,14 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [inactivityTimeout, setInactivityTimeout] = useState(30); // Default 30 minutes
-  const inactivityTimerRef = useRef(null);
+
+  // Logout user
+  const logout = useCallback(() => {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+    delete axios.defaults.headers.common['Authorization'];
+    setUser(null);
+  }, []);
 
   // Initialize auth state from localStorage
   useEffect(() => {
@@ -20,71 +29,27 @@ export const AuthProvider = ({ children }) => {
     if (storedUser && token) {
       setUser(JSON.parse(storedUser));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      
-      // Initialize inactivity timer
-      resetInactivityTimer();
     }
     
     setLoading(false);
   }, []);
   
-  // Set up activity listeners
-  useEffect(() => {
-    if (user) {
-      // Events that indicate user activity
-      const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
-      
-      // Event handler to reset the inactivity timer
-      const handleUserActivity = () => {
-        resetInactivityTimer();
-      };
-      
-      // Add event listeners
-      activityEvents.forEach(event => {
-        window.addEventListener(event, handleUserActivity);
-      });
-      
-      // Clean up event listeners
-      return () => {
-        activityEvents.forEach(event => {
-          window.removeEventListener(event, handleUserActivity);
-        });
-        
-        // Clear any existing timer
-        if (inactivityTimerRef.current) {
-          clearTimeout(inactivityTimerRef.current);
-        }
-      };
-    }
-  }, [user, inactivityTimeout]);
-  
-  // Function to reset the inactivity timer
-  const resetInactivityTimer = () => {
-    // Clear any existing timer
-    if (inactivityTimerRef.current) {
-      clearTimeout(inactivityTimerRef.current);
-    }
-    
-    // Set a new timer
-    if (user) {
-      inactivityTimerRef.current = setTimeout(() => {
-        // Log the user out after the inactivity period
-        logout();
-        console.log('User automatically logged out due to inactivity');
-      }, inactivityTimeout * 60 * 1000); // Convert minutes to milliseconds
-    }
-  };
+  // Set up inactivity timer
+  const resetInactivityTimer = useInactivityTimer({
+    timeout: inactivityTimeout,
+    onTimeout: logout,
+    isActive: !!user
+  });
   
   // Update inactivity timeout
-  const updateInactivityTimeout = (minutes) => {
+  const updateInactivityTimeout = useCallback((minutes) => {
     setInactivityTimeout(minutes);
-    resetInactivityTimer();
-  };
+  }, []);
 
   // Check if this is the first time setup
   const checkFirstTimeSetup = useCallback(async () => {
     try {
-      const response = await axios.get('/api/auth/check-setup');
+      const response = await authAPI.checkSetup();
       return response.data.isFirstTimeSetup;
     } catch (error) {
       console.error('Error checking setup status:', error);
@@ -96,7 +61,7 @@ export const AuthProvider = ({ children }) => {
   const register = async (userData) => {
     try {
       setLoading(true);
-      const response = await axios.post('/api/auth/register', userData);
+      const response = await authAPI.register(userData);
       const { user, token } = response.data;
       
       localStorage.setItem('user', JSON.stringify(user));
@@ -118,7 +83,7 @@ export const AuthProvider = ({ children }) => {
   const login = async (credentials) => {
     try {
       setLoading(true);
-      const response = await axios.post('/api/auth/login', credentials);
+      const response = await authAPI.login(credentials);
       const { user, token } = response.data;
       
       localStorage.setItem('user', JSON.stringify(user));
@@ -140,7 +105,7 @@ export const AuthProvider = ({ children }) => {
   const setupAdmin = async (adminData) => {
     try {
       setLoading(true);
-      const response = await axios.post('/api/auth/setup', adminData);
+      const response = await authAPI.setup(adminData);
       const { user, token } = response.data;
       
       // Save auth data to localStorage
@@ -165,19 +130,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // Logout user
-  const logout = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-    delete axios.defaults.headers.common['Authorization'];
-    setUser(null);
-  };
 
   // Change password
   const changePassword = async (passwordData) => {
     try {
       setLoading(true);
-      const response = await axios.post('/api/auth/change-password', passwordData);
+      const response = await authAPI.changePassword(passwordData);
       setError(null);
       return response.data;
     } catch (err) {

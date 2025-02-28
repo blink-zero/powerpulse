@@ -1,18 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { FiUser, FiLock, FiX, FiSave, FiClock } from 'react-icons/fi';
+import React, { useState, useEffect, useCallback } from 'react';
+import { FiUser, FiLock, FiX, FiSave, FiClock, FiAlertCircle } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
+import useFormValidation from '../../hooks/useFormValidation';
+import { authAPI } from '../../services/api';
 
 const AccountSettings = ({ setError, setSuccess }) => {
   const { user, inactivityTimeout, updateInactivityTimeout } = useAuth();
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
   const [localInactivityTimeout, setLocalInactivityTimeout] = useState(inactivityTimeout);
   
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  });
+  // Password form validation
+  const validatePasswordForm = (values) => {
+    const errors = {};
+    
+    if (!values.currentPassword) {
+      errors.currentPassword = 'Current password is required';
+    }
+    
+    if (!values.newPassword) {
+      errors.newPassword = 'New password is required';
+    } else if (values.newPassword.length < 8) {
+      errors.newPassword = 'Password must be at least 8 characters long';
+    }
+    
+    if (!values.confirmPassword) {
+      errors.confirmPassword = 'Please confirm your new password';
+    } else if (values.confirmPassword !== values.newPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+    
+    return errors;
+  };
+  
+  const {
+    values: passwordData,
+    errors: passwordErrors,
+    touched: passwordTouched,
+    isSubmitting: isPasswordSubmitting,
+    handleChange: handlePasswordInputChange,
+    handleBlur: handlePasswordInputBlur,
+    handleSubmit: handlePasswordSubmit,
+    resetForm: resetPasswordForm
+  } = useFormValidation(
+    {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
+    },
+    validatePasswordForm
+  );
   
   // Update local state when context value changes
   useEffect(() => {
@@ -29,34 +65,20 @@ const AccountSettings = ({ setError, setSuccess }) => {
     setSuccess('Session timeout updated successfully');
   };
   
-  const handlePasswordInputChange = (e) => {
-    const { name, value } = e.target;
-    setPasswordData({
-      ...passwordData,
-      [name]: value
-    });
-  };
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setIsChangePasswordModalOpen(false);
-  };
+    resetPasswordForm();
+  }, [resetPasswordForm]);
 
-  const handleChangePassword = async (e) => {
-    e.preventDefault();
-    
-    // Validate passwords match
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setError('New passwords do not match');
-      return;
-    }
-    
+  const submitPasswordChange = useCallback(async (values) => {
     try {
       setError(null);
       setSuccess(null);
       
-      await axios.post('/api/auth/change-password', {
-        currentPassword: passwordData.currentPassword,
-        newPassword: passwordData.newPassword
+      await authAPI.changePassword({
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword
       });
       
       setSuccess('Password changed successfully');
@@ -65,7 +87,7 @@ const AccountSettings = ({ setError, setSuccess }) => {
       setError(err.response?.data?.message || 'Failed to change password. Please try again.');
       console.error('Error changing password:', err);
     }
-  };
+  }, [setError, setSuccess, closeModal]);
 
   return (
     <div className="space-y-6">
@@ -143,7 +165,7 @@ const AccountSettings = ({ setError, setSuccess }) => {
                   <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left w-full">
                     <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Change Password</h3>
                     <div className="mt-4">
-                      <form onSubmit={handleChangePassword}>
+                      <form onSubmit={handlePasswordSubmit(submitPasswordChange)}>
                         <div className="mb-4">
                           <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                             Current Password
@@ -154,9 +176,20 @@ const AccountSettings = ({ setError, setSuccess }) => {
                             id="currentPassword"
                             value={passwordData.currentPassword}
                             onChange={handlePasswordInputChange}
+                            onBlur={handlePasswordInputBlur}
                             required
-                            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                            className={`mt-1 block w-full border ${
+                              passwordTouched.currentPassword && passwordErrors.currentPassword 
+                                ? 'border-red-500 dark:border-red-400' 
+                                : 'border-gray-300 dark:border-gray-600'
+                            } rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500`}
                           />
+                          {passwordTouched.currentPassword && passwordErrors.currentPassword && (
+                            <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center">
+                              <FiAlertCircle className="mr-1 h-4 w-4" />
+                              {passwordErrors.currentPassword}
+                            </p>
+                          )}
                         </div>
                         <div className="mb-4">
                           <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -168,9 +201,20 @@ const AccountSettings = ({ setError, setSuccess }) => {
                             id="newPassword"
                             value={passwordData.newPassword}
                             onChange={handlePasswordInputChange}
+                            onBlur={handlePasswordInputBlur}
                             required
-                            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                            className={`mt-1 block w-full border ${
+                              passwordTouched.newPassword && passwordErrors.newPassword 
+                                ? 'border-red-500 dark:border-red-400' 
+                                : 'border-gray-300 dark:border-gray-600'
+                            } rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500`}
                           />
+                          {passwordTouched.newPassword && passwordErrors.newPassword && (
+                            <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center">
+                              <FiAlertCircle className="mr-1 h-4 w-4" />
+                              {passwordErrors.newPassword}
+                            </p>
+                          )}
                         </div>
                         <div className="mb-4">
                           <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -182,9 +226,20 @@ const AccountSettings = ({ setError, setSuccess }) => {
                             id="confirmPassword"
                             value={passwordData.confirmPassword}
                             onChange={handlePasswordInputChange}
+                            onBlur={handlePasswordInputBlur}
                             required
-                            className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                            className={`mt-1 block w-full border ${
+                              passwordTouched.confirmPassword && passwordErrors.confirmPassword 
+                                ? 'border-red-500 dark:border-red-400' 
+                                : 'border-gray-300 dark:border-gray-600'
+                            } rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500`}
                           />
+                          {passwordTouched.confirmPassword && passwordErrors.confirmPassword && (
+                            <p className="mt-1 text-sm text-red-600 dark:text-red-400 flex items-center">
+                              <FiAlertCircle className="mr-1 h-4 w-4" />
+                              {passwordErrors.confirmPassword}
+                            </p>
+                          )}
                         </div>
                       </form>
                     </div>
@@ -194,11 +249,24 @@ const AccountSettings = ({ setError, setSuccess }) => {
               <div className="bg-gray-50 dark:bg-gray-700 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button
                   type="button"
-                  onClick={handleChangePassword}
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 sm:ml-3 sm:w-auto sm:text-sm"
+                  onClick={handlePasswordSubmit(submitPasswordChange)}
+                  disabled={isPasswordSubmitting}
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-primary-600 text-base font-medium text-white hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed sm:ml-3 sm:w-auto sm:text-sm"
                 >
-                  <FiSave className="mr-2 h-5 w-5" />
-                  Change Password
+                  {isPasswordSubmitting ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Processing...
+                    </>
+                  ) : (
+                    <>
+                      <FiSave className="mr-2 h-5 w-5" />
+                      Change Password
+                    </>
+                  )}
                 </button>
                 <button
                   type="button"

@@ -5,6 +5,42 @@ All notable changes to the PowerPulse project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.2] - 2025-02-28
+
+### Added
+- Centralized configuration system:
+  - Added `client/src/config/appConfig.js` to store application-wide configuration values
+  - Eliminated version number duplication across components
+- Custom React hooks for improved code organization:
+  - Added `useInactivityTimer` hook for better session timeout management
+  - Added `useFormValidation` hook for form state management and validation
+- Centralized API service:
+  - Added `client/src/services/api.js` with organized API endpoints
+  - Added request/response interceptors for common functionality
+  - Improved error handling for API requests
+- GitHub Actions CI/CD workflow:
+  - Added automated build and testing pipeline
+  - Added security vulnerability scanning
+
+### Changed
+- Updated components to use centralized configuration:
+  - Modified Footer.jsx to use appConfig for version and copyright information
+  - Updated SetupPage.jsx to use appConfig for consistent branding
+- Improved form validation in AccountSettings:
+  - Added real-time validation feedback
+  - Enhanced error messages with visual indicators
+  - Added loading state during form submission
+- Refactored AuthContext to use custom hooks and API service:
+  - Improved code organization and readability
+  - Reduced code duplication
+  - Enhanced error handling
+
+### Security
+- Improved session timeout implementation:
+  - More reliable activity detection
+  - Better cleanup of event listeners
+  - Cleaner code organization
+
 ## [1.8.1] - 2025-02-28
 
 ### Added
