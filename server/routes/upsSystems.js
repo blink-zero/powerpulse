@@ -69,7 +69,8 @@ router.get('/', authenticateToken, async (req, res) => {
                 return {
                   id: dbSystem.id,
                   name: dbSystem.name,
-                  displayName: liveUps.displayName || dbSystem.name,
+                  nickname: dbSystem.nickname,
+                  displayName: dbSystem.nickname || liveUps.displayName || dbSystem.name,
                   upsName: dbSystem.ups_name,
                   nutServerId: dbSystem.nut_server_id,
                   model: liveUps.model,
@@ -95,6 +96,8 @@ router.get('/', authenticateToken, async (req, res) => {
                 return {
                   id: dbSystem.id,
                   name: dbSystem.name,
+                  nickname: dbSystem.nickname,
+                  displayName: dbSystem.nickname || dbSystem.name,
                   upsName: dbSystem.ups_name,
                   nutServerId: dbSystem.nut_server_id,
                   status: 'Unknown',
@@ -161,6 +164,8 @@ router.get('/:id', authenticateToken, async (req, res) => {
             return res.json({
               id: dbSystem.id,
               name: dbSystem.name,
+              nickname: dbSystem.nickname,
+              displayName: dbSystem.nickname || dbSystem.name,
               upsName: dbSystem.ups_name,
               nutServerId: dbSystem.nut_server_id,
               status: 'Unknown',
@@ -205,7 +210,8 @@ router.get('/:id', authenticateToken, async (req, res) => {
           return res.json({
             id: dbSystem.id,
             name: dbSystem.name,
-            displayName: matchingUps.displayName || dbSystem.name,
+            nickname: dbSystem.nickname,
+            displayName: dbSystem.nickname || matchingUps.displayName || dbSystem.name,
             upsName: dbSystem.ups_name,
             nutServerId: dbSystem.nut_server_id,
             model: matchingUps.model,
@@ -233,6 +239,8 @@ router.get('/:id', authenticateToken, async (req, res) => {
           return res.json({
             id: dbSystem.id,
             name: dbSystem.name,
+            nickname: dbSystem.nickname,
+            displayName: dbSystem.nickname || dbSystem.name,
             upsName: dbSystem.ups_name,
             nutServerId: dbSystem.nut_server_id,
             status: 'Error',
@@ -252,7 +260,7 @@ router.get('/:id', authenticateToken, async (req, res) => {
 
 // Add a new UPS system
 router.post('/', authenticateToken, (req, res) => {
-  const { name, displayName, nutServerId, upsName } = req.body;
+  const { name, nickname, nutServerId, upsName } = req.body;
   
   if (!name || !nutServerId || !upsName) {
     return res.status(400).json({ message: 'Name, NUT server ID, and UPS name are required' });
@@ -270,8 +278,8 @@ router.post('/', authenticateToken, (req, res) => {
     
     // Add UPS system to database
     db.run(
-      'INSERT INTO ups_systems (name, nut_server_id, ups_name) VALUES (?, ?, ?)',
-      [name, nutServerId, upsName],
+      'INSERT INTO ups_systems (name, nickname, nut_server_id, ups_name) VALUES (?, ?, ?, ?)',
+      [name, nickname || null, nutServerId, upsName],
       function(err) {
         if (err) {
           return res.status(500).json({ message: 'Error creating UPS system', error: err.message });
@@ -281,6 +289,7 @@ router.post('/', authenticateToken, (req, res) => {
           message: 'UPS system created',
           id: this.lastID,
           name,
+          nickname,
           nutServerId,
           upsName
         });
@@ -292,7 +301,7 @@ router.post('/', authenticateToken, (req, res) => {
 // Update a UPS system
 router.put('/:id', authenticateToken, (req, res) => {
   const upsId = parseInt(req.params.id);
-  const { name, nutServerId, upsName } = req.body;
+  const { name, nickname, nutServerId, upsName } = req.body;
   
   if (!name || !nutServerId || !upsName) {
     return res.status(400).json({ message: 'Name, NUT server ID, and UPS name are required' });
@@ -320,8 +329,8 @@ router.put('/:id', authenticateToken, (req, res) => {
       
       // Update UPS system
       db.run(
-        'UPDATE ups_systems SET name = ?, nut_server_id = ?, ups_name = ? WHERE id = ?',
-        [name, nutServerId, upsName, upsId],
+        'UPDATE ups_systems SET name = ?, nickname = ?, nut_server_id = ?, ups_name = ? WHERE id = ?',
+        [name, nickname || null, nutServerId, upsName, upsId],
         function(err) {
           if (err) {
             return res.status(500).json({ message: 'Error updating UPS system', error: err.message });
@@ -331,12 +340,47 @@ router.put('/:id', authenticateToken, (req, res) => {
             message: 'UPS system updated',
             id: upsId,
             name,
+            nickname,
             nutServerId,
             upsName
           });
         }
       );
     });
+  });
+});
+
+// Update UPS system nickname
+router.put('/:id/nickname', authenticateToken, (req, res) => {
+  const upsId = parseInt(req.params.id);
+  const { nickname } = req.body;
+  
+  // Check if UPS system exists
+  db.get('SELECT id FROM ups_systems WHERE id = ?', [upsId], (err, ups) => {
+    if (err) {
+      return res.status(500).json({ message: 'Database error', error: err.message });
+    }
+    
+    if (!ups) {
+      return res.status(404).json({ message: 'UPS system not found' });
+    }
+    
+    // Update UPS system nickname
+    db.run(
+      'UPDATE ups_systems SET nickname = ? WHERE id = ?',
+      [nickname || null, upsId],
+      function(err) {
+        if (err) {
+          return res.status(500).json({ message: 'Error updating UPS system nickname', error: err.message });
+        }
+        
+        return res.json({
+          message: 'UPS system nickname updated',
+          id: upsId,
+          nickname
+        });
+      }
+    );
   });
 });
 

@@ -5,6 +5,23 @@ All notable changes to the PowerPulse project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.0] - 2025-02-28
+
+### Added
+- UPS Systems nicknaming feature:
+  - Added ability to assign custom nicknames to UPS systems
+  - Implemented nickname editing UI in the UPS Systems page
+  - Added dedicated API endpoint for updating UPS nicknames
+  - Improved UPS display to prioritize nicknames in the UI
+  - Added database migration for nickname storage
+
+### Technical
+- Enhanced database migration system:
+  - Improved migration file handling to support multiple migration files
+  - Added automatic discovery and execution of all SQL migration files
+  - Better error handling and reporting during migrations
+  - Maintained backward compatibility with existing migration code
+
 ## [1.7.0] - 2025-02-28
 
 ### Added

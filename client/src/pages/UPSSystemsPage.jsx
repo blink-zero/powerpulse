@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FiBattery, FiAlertCircle, FiServer, FiChevronDown, FiChevronUp, FiInfo } from 'react-icons/fi';
+import { FiBattery, FiAlertCircle, FiServer, FiChevronDown, FiChevronUp, FiInfo, FiEdit2, FiCheck, FiX } from 'react-icons/fi';
 import { useSettings } from '../context/SettingsContext';
 import { useNotifications } from '../hooks/useNotifications';
 
 // UPS Detail Card Component
-const UpsDetailCard = ({ ups, nutServerName }) => {
+const UpsDetailCard = ({ ups, nutServerName, onNicknameUpdate }) => {
   const [expanded, setExpanded] = useState(false);
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [nickname, setNickname] = useState(ups.nickname || '');
+  const [isSaving, setIsSaving] = useState(false);
 
   const getStatusColor = (status) => {
     switch (status?.toLowerCase()) {
@@ -28,6 +31,31 @@ const UpsDetailCard = ({ ups, nutServerName }) => {
     return 'bg-red-500';
   };
 
+  const handleNicknameEdit = () => {
+    setIsEditingNickname(true);
+  };
+
+  const handleNicknameSave = async () => {
+    try {
+      setIsSaving(true);
+      await axios.put(`/api/ups/systems/${ups.id}/nickname`, { nickname });
+      setIsEditingNickname(false);
+      if (onNicknameUpdate) {
+        onNicknameUpdate(ups.id, nickname);
+      }
+    } catch (error) {
+      console.error('Error updating nickname:', error);
+      // You could add error handling UI here
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleNicknameCancel = () => {
+    setNickname(ups.nickname || '');
+    setIsEditingNickname(false);
+  };
+
   return (
     <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
       {/* UPS Summary Header */}
@@ -36,9 +64,48 @@ const UpsDetailCard = ({ ups, nutServerName }) => {
           <div className="flex items-center">
             <FiBattery className="h-6 w-6 text-primary-600 mr-3" />
             <div>
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white">
-                {ups.displayName || ups.name}
-              </h3>
+              {isEditingNickname ? (
+                <div className="flex items-center">
+                  <input
+                    type="text"
+                    value={nickname}
+                    onChange={(e) => setNickname(e.target.value)}
+                    placeholder="Enter nickname"
+                    className="text-lg font-medium text-gray-900 dark:text-white bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-md px-2 py-1 mr-2"
+                    autoFocus
+                  />
+                  <button
+                    onClick={handleNicknameSave}
+                    disabled={isSaving}
+                    className="p-1 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
+                  >
+                    {isSaving ? (
+                      <div className="animate-spin h-4 w-4 border-t-2 border-b-2 border-green-600 rounded-full"></div>
+                    ) : (
+                      <FiCheck className="h-4 w-4" />
+                    )}
+                  </button>
+                  <button
+                    onClick={handleNicknameCancel}
+                    className="p-1 text-red-600 hover:text-red-800 dark:text-red-400 dark:hover:text-red-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
+                  >
+                    <FiX className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                    {ups.displayName || ups.name}
+                  </h3>
+                  <button
+                    onClick={handleNicknameEdit}
+                    className="ml-2 p-1 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 focus:outline-none"
+                    title="Edit nickname"
+                  >
+                    <FiEdit2 className="h-3 w-3" />
+                  </button>
+                </div>
+              )}
               <div className="flex items-center mt-1 space-x-3">
                 <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(ups.status)}`}>
                   {ups.status || 'Unknown'}
@@ -517,7 +584,25 @@ const UPSSystemsPage = () => {
       ) : (
         <div className="space-y-6">
           {upsSystems.map((ups, index) => (
-            <UpsDetailCard key={ups.id} ups={ups} nutServerName={getNutServerName(ups.nutServerId)} />
+            <UpsDetailCard 
+              key={ups.id} 
+              ups={ups} 
+              nutServerName={getNutServerName(ups.nutServerId)}
+              onNicknameUpdate={(id, nickname) => {
+                // Update the UPS systems state with the new nickname
+                setUpsSystems(prevSystems => 
+                  prevSystems.map(system => 
+                    system.id === id 
+                      ? { 
+                          ...system, 
+                          nickname, 
+                          displayName: nickname || system.name 
+                        } 
+                      : system
+                  )
+                );
+              }}
+            />
           ))}
         </div>
       )}

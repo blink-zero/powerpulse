@@ -64,17 +64,29 @@ function applyMigrations() {
     }
     
     try {
-      // Apply add_extended_notification_settings.sql migration
-      const extendedNotificationSettingsPath = path.resolve(migrationsDir, 'add_extended_notification_settings.sql');
-      if (fs.existsSync(extendedNotificationSettingsPath)) {
-        const sql = fs.readFileSync(extendedNotificationSettingsPath, 'utf8');
-        // Split by semicolon to get individual statements, filter out comments and empty lines
-        const statements = sql.split(';')
-          .map(statement => statement.trim())
-          .filter(statement => statement && !statement.startsWith('--'));
-        
-        // Execute each statement sequentially with promises
-        const executeStatements = async () => {
+      // Get all migration files
+      const migrationFiles = fs.readdirSync(migrationsDir)
+        .filter(file => file.endsWith('.sql'))
+        .map(file => path.resolve(migrationsDir, file));
+      
+      if (migrationFiles.length === 0) {
+        console.log('No migration files found');
+        return resolve();
+      }
+      
+      // Execute each migration file
+      const executeMigrations = async () => {
+        for (const migrationPath of migrationFiles) {
+          const migrationName = path.basename(migrationPath);
+          console.log(`Applying migration: ${migrationName}`);
+          
+          const sql = fs.readFileSync(migrationPath, 'utf8');
+          // Split by semicolon to get individual statements, filter out comments and empty lines
+          const statements = sql.split(';')
+            .map(statement => statement.trim())
+            .filter(statement => statement && !statement.startsWith('--'));
+          
+          // Execute each statement in the migration
           for (const statement of statements) {
             if (statement) {
               await new Promise((resolveStatement, rejectStatement) => {
@@ -93,17 +105,16 @@ function applyMigrations() {
               });
             }
           }
-        };
-        
-        // Execute statements and wait for completion
-        return executeStatements().then(() => {
-          console.log('Applied add_extended_notification_settings.sql migration');
-          resolve();
-        });
-      } else {
-        console.log('add_extended_notification_settings.sql migration file not found');
+          
+          console.log(`Applied migration: ${migrationName}`);
+        }
+      };
+      
+      // Execute migrations and wait for completion
+      return executeMigrations().then(() => {
+        console.log('All migrations applied successfully');
         resolve();
-      }
+      });
     } catch (err) {
       console.error('Error applying migrations:', err);
       // Continue with initialization even if migrations fail
@@ -148,12 +159,34 @@ async function initializeDatabase() {
       CREATE TABLE IF NOT EXISTS ups_systems (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
+        nickname TEXT DEFAULT NULL,
         nut_server_id INTEGER,
         ups_name TEXT NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (nut_server_id) REFERENCES nut_servers (id)
       )
     `);
+    
+    // Add nickname column to ups_systems table if it doesn't exist
+    db.run(`PRAGMA table_info(ups_systems)`, (err, columns) => {
+      if (err) {
+        console.error('Error getting ups_systems columns:', err.message);
+        return;
+      }
+      
+      // Check if nickname column exists
+      const hasNickname = columns && columns.some(col => col.name === 'nickname');
+      if (!hasNickname) {
+        console.log('Adding nickname column to ups_systems table');
+        db.run('ALTER TABLE ups_systems ADD COLUMN nickname TEXT DEFAULT NULL', (err) => {
+          if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding nickname column:', err.message);
+          } else {
+            console.log('Successfully added nickname column to ups_systems table');
+          }
+        });
+      }
+    });
 
     // Battery History
     db.run(`

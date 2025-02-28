@@ -54,7 +54,7 @@ const Login = () => {
             Sign in to your account to access your UPS monitoring dashboard
           </p>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-            v1.7.0 by <a 
+            v1.8.0 by <a
               href="https://github.com/blink-zero" 
               target="_blank" 
               rel="noopener noreferrer"
