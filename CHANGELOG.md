@@ -14,10 +14,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added configurable timeout setting in Account Settings
   - Default timeout set to 30 minutes
   - Added visual feedback when saving timeout settings
+- Docker improvements:
+  - Added dedicated Docker documentation (DOCKER.md)
+  - Added timezone configuration support for Docker containers
+  - Improved environment variable handling in docker-compose.yml
+  - Added detailed explanations for Docker setup and configuration
 
 ### Security
 - Enhanced authentication security with automatic logout for inactive sessions
 - Improved session management to reduce risk of unauthorized access
+
+### Documentation
+- Added comprehensive Docker setup guide
+- Added timezone configuration instructions
+- Improved environment variable documentation
 
 ## [1.8.0] - 2025-02-28
 

@@ -136,6 +136,7 @@ This will generate 24 hours of simulated battery history data for all configured
 
 - [Client Documentation](client/src/README.md): Details on frontend components and services
 - [Server Documentation](server/README.md): Information about the backend API and architecture
+- [Docker Documentation](DOCKER.md): Detailed instructions for Docker setup and configuration
 - [Changelog](CHANGELOG.md): History of changes and version updates
 
 ## License
