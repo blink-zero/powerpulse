@@ -24,6 +24,8 @@ This document provides detailed instructions for setting up and configuring Powe
 
 ## Quick Start
 
+### Using Local Build
+
 1. Clone the repository:
    ```bash
    git clone https://github.com/blink-zero/powerpulse.git
@@ -52,6 +54,49 @@ This document provides detailed instructions for setting up and configuring Powe
    ```
 
 5. Access PowerPulse at http://localhost
+
+### Using Docker Hub Images
+
+You can also run PowerPulse directly from Docker Hub without cloning the repository:
+
+1. Create a directory for PowerPulse:
+   ```bash
+   mkdir powerpulse
+   cd powerpulse
+   ```
+
+2. Create a data directory for the server:
+   ```bash
+   mkdir -p server/data
+   ```
+
+3. Download the Docker Compose file:
+   ```bash
+   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.8.2/docker-compose.dockerhub.yml -O docker-compose.yml
+   ```
+
+4. Create an environment file:
+   ```bash
+   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.8.2/.env.example -O .env
+   ```
+
+5. Edit the `.env` file to set your configuration:
+   ```bash
+   # Generate a secure JWT secret
+   JWT_SECRET=$(openssl rand -hex 32)
+   # Replace the default value in .env
+   sed -i "s/JWT_SECRET=.*/JWT_SECRET=$JWT_SECRET/" .env
+   
+   # Edit other settings as needed
+   nano .env
+   ```
+
+6. Start the containers:
+   ```bash
+   docker-compose up -d
+   ```
+
+7. Access PowerPulse at http://localhost
 
 ## Configuration
 

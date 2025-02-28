@@ -121,6 +121,37 @@ powerpulse/
    docker-compose up -d
    ```
 
+#### Docker Hub Installation
+
+You can also run PowerPulse directly from Docker Hub without cloning the repository:
+
+1. Create a directory for PowerPulse:
+   ```
+   mkdir powerpulse
+   cd powerpulse
+   ```
+
+2. Create a data directory for the server:
+   ```
+   mkdir -p server/data
+   ```
+
+3. Download the Docker Compose file:
+   ```
+   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.8.2/docker-compose.dockerhub.yml -O docker-compose.yml
+   ```
+
+4. Create an environment file:
+   ```
+   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.8.2/.env.example -O .env
+   # Edit .env with your configuration
+   ```
+
+5. Start with Docker Compose:
+   ```
+   docker-compose up -d
+   ```
+
 ### Testing with Sample Data
 
 To generate test battery history data for development and testing:
