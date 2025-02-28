@@ -1,184 +1,34 @@
-# PowerPulse - Modern UPS Monitoring Dashboard
+# PowerPulse
 
-PowerPulse is a modern UPS monitoring dashboard integrated with Network UPS Tools (NUT). It provides a clean, responsive interface for monitoring and managing UPS systems.
+![PowerPulse Logo](https://img.shields.io/badge/PowerPulse-UPS%20Monitoring-blue)
+![Version](https://img.shields.io/badge/version-1.7.0-green)
+![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-## Code Quality Improvements
+PowerPulse is a modern UPS (Uninterruptible Power Supply) monitoring dashboard integrated with Network UPS Tools (NUT). It provides a clean, responsive interface for monitoring and managing your UPS systems.
 
-The codebase has been enhanced with several code quality and maintainability improvements:
+## Why Use PowerPulse?
 
-### Recent Improvements (v1.7.0)
+- **Real-time Monitoring**: Keep track of your UPS systems' status, battery levels, and power conditions in real-time
+- **Multi-channel Notifications**: Receive alerts via Discord, Slack, or email when your UPS status changes
+- **Comprehensive Dashboard**: View detailed information about all your UPS systems in one place
+- **Historical Data**: Track battery performance over time with built-in history graphs
+- **User-friendly Interface**: Modern, responsive design that works on desktop and mobile devices
+- **Secure Access**: Role-based authentication system to control access to your UPS monitoring
+- **Easy Setup**: Simple installation process with Docker support
 
-#### 1. Extended UPS Systems Details View
-- Added comprehensive UPS information display with all available NUT server data
-- Implemented expandable card interface for each UPS system
-- Organized UPS data into logical categories:
-  - Battery details (charge, voltage, runtime, type, etc.)
-  - Device information (manufacturer, model, serial, type)
-  - Driver details (name, version, parameters)
-  - Input/Output details (voltage, nominal values)
-  - UPS-specific details (status, load, beeper status, etc.)
-- Enhanced user experience with collapsible sections for detailed information
-- Maintained key metrics visibility in the summary view
-- Improved visual presentation with organized data tables
+## Features
 
-### Previous Improvements (v1.6.0)
-
-#### 1. Consolidated UPS Monitoring System
-- Combined functionality from separate monitoring modules into a single cohesive service
-- Improved reliability with both real-time monitoring and polling-based fallback
-- Enhanced error handling and recovery mechanisms
-- Better logging for troubleshooting
-- Optimized database operations for status tracking
-
-#### 2. Improved Notification System Architecture
-- Refactored notification components into smaller, more focused components:
-  - `DiscordNotificationSettings`: Handles Discord webhook configuration and testing
-  - `SlackNotificationSettings`: Handles Slack webhook configuration and testing
-  - `EmailNotificationSettings`: Handles email notification configuration and testing
-  - `NotificationTypes`: Manages different notification types (battery, low battery)
-  - `NotificationHistory`: Displays history of sent notifications
-- Enhanced user experience with better feedback during notification testing
-- Improved code organization and maintainability
-
-#### 3. Enhanced Settings Page UI
-- Implemented tab-based interface to reduce visual clutter:
-  - General settings tab for application-wide settings
-  - Notifications tab for all notification-related settings
-  - Account tab for user account settings
-  - User Management tab for admin users
-- Added collapsible sections for notification channels
-- Improved organization of settings into logical categories
-- Better user experience with focused, task-oriented views
-
-### Previous Improvements (v1.5.1)
-
-#### 1. Extended Notification System
-- Support for multiple notification channels:
-  - Discord webhook integration for UPS status notifications
-  - Slack webhook integration for UPS status notifications
-  - Email notifications with configurable recipients
-- Notification history UI to view past notifications
-- Improved code organization:
-  - Extracted notification logic into a custom hook for better reusability
-  - Modularized SettingsPage into smaller components for better maintainability
-- Enhanced Docker configuration:
-  - Multi-stage builds for server Dockerfile to reduce image size
-  - Environment variable validation in Docker entrypoint script
-  - SMTP configuration options for email notifications
-
-### Previous Improvements (v1.3.0)
-
-#### 1. Discord Webhook Notifications
-- Added Discord webhook integration for UPS status notifications
-- Configurable notification settings in the Settings page
-- Discord notifications when UPS goes on battery power
-- Discord notifications for low battery conditions
-- Discord notifications when UPS returns to online status
-- Test notification functionality
-- Automatic status monitoring with configurable polling interval
-- Server-side notification handling with rich Discord embeds
-- Notification logs for tracking status changes
-
-### Previous Improvements (v1.2.0)
-
-#### 1. Server Entry Point Standardization
-- Updated root package.json "start" script to point to the new server.js entry point
-- Added compatibility layer in server/fixed_index.js to handle references to the old entry point
-
-#### 2. Enhanced Security
-- Improved JWT secret handling with proper validation and fallbacks
-- Added comprehensive environment variable validation
-- Added HTTPS configuration documentation
-- Added security headers to nginx configuration
-- Added support for HTTPS in Docker setup
-
-#### 3. Improved Error Handling
-- Enhanced NUT client with retry logic, timeouts, and better error reporting
-- Added more specific error types and messages
-- Improved error handling in authentication middleware
-
-#### 4. Better Environment Configuration
-- Enhanced .env.example files with better documentation and examples
-- Added validation for required environment variables
-- Added more configuration options for advanced use cases
-- Added environment variable support in Docker containers
-
-#### 5. Testing Setup
-- Added test-setup.js with Jest and React Testing Library configuration
-- Added mocks for common dependencies like localStorage, fetch, and NUT client
-- Added console output suppression for cleaner test output
-
-#### 6. Dependency Management
-- Moved client-specific dependencies from root package.json to client/package.json
-- Updated axios to the latest version
-
-#### 7. Docker Improvements
-- Updated Docker configuration to use the new server.js entry point
-- Added health checks for Docker containers
-- Simplified Docker configuration for better compatibility
-- Improved nginx configuration with security headers
-- Enhanced Docker reliability
-- Fixed Docker build issues by using npm install instead of npm ci
-
-### Previous Improvements (v1.1.0)
-
-### 1. API Service Layer
-
-A dedicated API service layer has been implemented to centralize API calls and provide a consistent interface for interacting with the backend:
-
-- `client/src/services/api.js`: Base API configuration with Axios
-- `client/src/services/authService.js`: Authentication-related API calls
-- `client/src/services/nutService.js`: NUT server-related API calls
-- `client/src/services/upsService.js`: UPS system-related API calls
-
-This separation of concerns makes the code more maintainable and testable.
-
-### 2. Custom Hooks
-
-Several custom hooks have been created to encapsulate common functionality:
-
-- `useApi`: A hook for making API calls with loading and error states
-- `usePollingApi`: A hook for polling API calls at regular intervals
-- `useForm`: A hook for form handling with validation
-
-These hooks reduce code duplication and provide a consistent way to handle common tasks.
-
-### 3. Reusable Components
-
-A set of reusable UI components has been created to ensure consistency across the application:
-
-- `Button`: A customizable button component
-- `Card`: A card component for displaying content
-- `ErrorBoundary`: A component for catching and handling errors
-- `FormField`: A standardized form field component
-- `Modal`: A modal dialog component
-- `Toast`: A toast notification system
-- `UpsCard`: A specialized component for displaying UPS system information
-- `Navigation`: A set of modular navigation components for consistent layout
-
-The navigation components have been modularized for better maintainability:
-- `Sidebar`: Main sidebar component
-- `SidebarHeader`: Header section of the sidebar
-- `SidebarNavigation`: Navigation menu in the sidebar
-- `UserProfile`: User profile section in the sidebar
-- `Header`: Top navigation bar
-- `Footer`: Footer component
-
-### 4. Error Handling
-
-A comprehensive error handling system has been implemented:
-
-- Global error boundary in `App.jsx`
-- Toast notifications for user-facing errors
-- Utility functions for formatting and logging errors
-
-### 5. Form Validation
-
-A form validation system has been implemented using the `createValidator` utility and the `useForm` hook.
-
-### 6. Type Definitions
-
-Type definitions have been added using JSDoc comments for better code documentation and IDE support.
+- **UPS Monitoring Dashboard**: View all your UPS systems in a clean, modern interface
+- **Detailed UPS Information**: Access comprehensive details about each UPS system
+- **Battery History Tracking**: Monitor battery performance over time
+- **Multi-channel Notifications**:
+  - Discord webhook integration
+  - Slack webhook integration
+  - Email notifications
+- **User Management**: Admin controls for managing users and permissions
+- **Customizable Settings**: Configure polling intervals, notification preferences, and more
+- **Responsive Design**: Works on desktop, tablet, and mobile devices
+- **Dark Mode Support**: Easy on the eyes during those late-night monitoring sessions
 
 ## Project Structure
 
@@ -219,6 +69,8 @@ powerpulse/
 
 ### Installation
 
+#### Standard Installation
+
 1. Clone the repository:
    ```
    git clone https://github.com/blink-zero/powerpulse.git
@@ -230,9 +82,34 @@ powerpulse/
    npm run install-all
    ```
 
-3. Start the development server:
+3. Configure environment variables:
+   ```
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+4. Start the development server:
    ```
    npm run dev
+   ```
+
+#### Docker Installation
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/blink-zero/powerpulse.git
+   cd powerpulse
+   ```
+
+2. Configure environment variables:
+   ```
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+3. Start with Docker Compose:
+   ```
+   docker-compose up -d
    ```
 
 ### Testing with Sample Data
@@ -249,9 +126,11 @@ To generate test battery history data for development and testing:
 
 This will generate 24 hours of simulated battery history data for all configured UPS systems, which is useful for testing the battery history graph functionality.
 
-## Usage
+## Documentation
 
-See the [client/src/README.md](client/src/README.md) file for detailed documentation on how to use the frontend components and services.
+- [Client Documentation](client/src/README.md): Details on frontend components and services
+- [Server Documentation](server/README.md): Information about the backend API and architecture
+- [Changelog](CHANGELOG.md): History of changes and version updates
 
 ## License
 
