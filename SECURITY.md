@@ -16,7 +16,7 @@ Here are the versions we're currently keeping an eye on and patching:
 Hey, it happens to the best of us! If you've found something that doesn't look right security-wise:
 
 1. **Please don't post it publicly** - let's keep it between us for now
-2. **Drop us an email at [INSERT EMAIL]** with:
+2. **Drop us an email at powerpulse.security@deployaroo.io** with:
    - What you found
    - How to make it happen
    - Screenshots or code if you've got them
