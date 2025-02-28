@@ -1,7 +1,7 @@
 # PowerPulse
 
 ![PowerPulse Logo](https://img.shields.io/badge/PowerPulse-UPS%20Monitoring-blue)
-![Version](https://img.shields.io/badge/version-1.8.1-green)
+![Version](https://img.shields.io/badge/version-1.8.2-green)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 PowerPulse is a modern UPS (Uninterruptible Power Supply) monitoring dashboard integrated with Network UPS Tools (NUT). It provides a clean, responsive interface for monitoring and managing your UPS systems.
@@ -44,7 +44,10 @@ powerpulse/
 │   ├── public/             # Static assets
 │   └── src/
 │       ├── components/     # Reusable UI components
-│       │   └── navigation/ # Navigation components
+│       │   ├── navigation/ # Navigation components
+│       │   ├── notifications/ # Notification components
+│       │   └── settings/   # Settings components
+│       ├── config/         # Application configuration
 │       ├── context/        # React context providers
 │       ├── hooks/          # Custom React hooks
 │       ├── pages/          # Page components
