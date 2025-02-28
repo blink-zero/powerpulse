@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 
 const AuthContext = createContext();
@@ -9,6 +9,8 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [inactivityTimeout, setInactivityTimeout] = useState(30); // Default 30 minutes
+  const inactivityTimerRef = useRef(null);
 
   // Initialize auth state from localStorage
   useEffect(() => {
@@ -18,10 +20,66 @@ export const AuthProvider = ({ children }) => {
     if (storedUser && token) {
       setUser(JSON.parse(storedUser));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
+      // Initialize inactivity timer
+      resetInactivityTimer();
     }
     
     setLoading(false);
   }, []);
+  
+  // Set up activity listeners
+  useEffect(() => {
+    if (user) {
+      // Events that indicate user activity
+      const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+      
+      // Event handler to reset the inactivity timer
+      const handleUserActivity = () => {
+        resetInactivityTimer();
+      };
+      
+      // Add event listeners
+      activityEvents.forEach(event => {
+        window.addEventListener(event, handleUserActivity);
+      });
+      
+      // Clean up event listeners
+      return () => {
+        activityEvents.forEach(event => {
+          window.removeEventListener(event, handleUserActivity);
+        });
+        
+        // Clear any existing timer
+        if (inactivityTimerRef.current) {
+          clearTimeout(inactivityTimerRef.current);
+        }
+      };
+    }
+  }, [user, inactivityTimeout]);
+  
+  // Function to reset the inactivity timer
+  const resetInactivityTimer = () => {
+    // Clear any existing timer
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current);
+    }
+    
+    // Set a new timer
+    if (user) {
+      inactivityTimerRef.current = setTimeout(() => {
+        // Log the user out after the inactivity period
+        logout();
+        console.log('User automatically logged out due to inactivity');
+      }, inactivityTimeout * 60 * 1000); // Convert minutes to milliseconds
+    }
+  };
+  
+  // Update inactivity timeout
+  const updateInactivityTimeout = (minutes) => {
+    setInactivityTimeout(minutes);
+    resetInactivityTimer();
+  };
 
   // Check if this is the first time setup
   const checkFirstTimeSetup = useCallback(async () => {
@@ -139,7 +197,9 @@ export const AuthProvider = ({ children }) => {
     logout,
     setupAdmin,
     checkFirstTimeSetup,
-    changePassword
+    changePassword,
+    inactivityTimeout,
+    updateInactivityTimeout
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

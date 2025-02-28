@@ -1,18 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FiUser, FiLock, FiX, FiSave } from 'react-icons/fi';
+import { FiUser, FiLock, FiX, FiSave, FiClock } from 'react-icons/fi';
 import { useAuth } from '../../context/AuthContext';
 
 const AccountSettings = ({ setError, setSuccess }) => {
-  const { user } = useAuth();
+  const { user, inactivityTimeout, updateInactivityTimeout } = useAuth();
   const [isChangePasswordModalOpen, setIsChangePasswordModalOpen] = useState(false);
+  const [localInactivityTimeout, setLocalInactivityTimeout] = useState(inactivityTimeout);
   
   const [passwordData, setPasswordData] = useState({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
+  
+  // Update local state when context value changes
+  useEffect(() => {
+    setLocalInactivityTimeout(inactivityTimeout);
+  }, [inactivityTimeout]);
 
+  const handleInactivityTimeoutChange = (e) => {
+    const value = parseInt(e.target.value, 10);
+    setLocalInactivityTimeout(value);
+  };
+  
+  const saveInactivityTimeout = () => {
+    updateInactivityTimeout(localInactivityTimeout);
+    setSuccess('Session timeout updated successfully');
+  };
+  
   const handlePasswordInputChange = (e) => {
     const { name, value } = e.target;
     setPasswordData({
@@ -76,6 +92,40 @@ const AccountSettings = ({ setError, setSuccess }) => {
             <FiLock className="mr-2 -ml-1 h-5 w-5" />
             Change Password
           </button>
+        </div>
+      </div>
+      
+      <div>
+        <h4 className="text-sm font-medium text-gray-900 dark:text-white">Session Settings</h4>
+        <div className="mt-2">
+          <div className="flex items-center">
+            <FiClock className="h-5 w-5 text-gray-500 dark:text-gray-400 mr-2" />
+            <label htmlFor="inactivityTimeout" className="block text-sm text-gray-700 dark:text-gray-300">
+              Automatic logout after inactivity (minutes):
+            </label>
+          </div>
+          <div className="mt-2 flex items-center">
+            <input
+              type="number"
+              id="inactivityTimeout"
+              name="inactivityTimeout"
+              min="1"
+              max="1440"
+              value={localInactivityTimeout}
+              onChange={handleInactivityTimeoutChange}
+              className="mr-3 block w-24 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+            />
+            <button
+              onClick={saveInactivityTimeout}
+              className="inline-flex items-center px-3 py-2 border border-gray-300 dark:border-gray-600 shadow-sm text-sm font-medium rounded-md text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            >
+              <FiSave className="mr-2 -ml-1 h-4 w-4" />
+              Save
+            </button>
+          </div>
+          <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+            For security, you will be automatically logged out after this period of inactivity.
+          </p>
         </div>
       </div>
 

@@ -5,6 +5,20 @@ All notable changes to the PowerPulse project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.1] - 2025-02-28
+
+### Added
+- Automatic session timeout feature:
+  - Added security feature that logs users out after a period of inactivity
+  - Implemented user activity tracking (mouse movements, clicks, keystrokes)
+  - Added configurable timeout setting in Account Settings
+  - Default timeout set to 30 minutes
+  - Added visual feedback when saving timeout settings
+
+### Security
+- Enhanced authentication security with automatic logout for inactive sessions
+- Improved session management to reduce risk of unauthorized access
+
 ## [1.8.0] - 2025-02-28
 
 ### Added

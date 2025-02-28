@@ -1,7 +1,7 @@
 # PowerPulse
 
 ![PowerPulse Logo](https://img.shields.io/badge/PowerPulse-UPS%20Monitoring-blue)
-![Version](https://img.shields.io/badge/version-1.8.0-green)
+![Version](https://img.shields.io/badge/version-1.8.1-green)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 PowerPulse is a modern UPS (Uninterruptible Power Supply) monitoring dashboard integrated with Network UPS Tools (NUT). It provides a clean, responsive interface for monitoring and managing your UPS systems.
@@ -30,6 +30,7 @@ PowerPulse is a modern UPS (Uninterruptible Power Supply) monitoring dashboard i
   - Email notifications
 - **User Management**: Admin controls for managing users and permissions
 - **Customizable Settings**: Configure polling intervals, notification preferences, and more
+- **Automatic Session Timeout**: Security feature that logs users out after a period of inactivity
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
 - **Dark Mode Support**: Easy on the eyes during those late-night monitoring sessions
 
