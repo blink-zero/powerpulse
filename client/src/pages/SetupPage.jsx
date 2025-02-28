@@ -156,7 +156,7 @@ const SetupPage = () => {
             First-time setup - Let's get your UPS monitoring dashboard ready
           </p>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-            v1.8.0 by <a
+            v1.8.1 by <a
               href="https://github.com/blink-zero" 
               target="_blank" 
               rel="noopener noreferrer"
