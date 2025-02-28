@@ -2,6 +2,7 @@
 
 Hey there! Thanks for checking out PowerPulse and considering contributing! This guide will help you get started with the project. Don't worry, we're pretty laid back here.
 
+
 ## What's Inside
 
 - [The Basics](#the-basics)
