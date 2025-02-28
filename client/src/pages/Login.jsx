@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FiActivity, FiLock, FiUser, FiAlertCircle } from 'react-icons/fi';
+import appConfig from '../config/appConfig';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -49,18 +50,18 @@ const Login = () => {
           <div className="flex justify-center">
             <FiActivity className="h-12 w-12 text-primary-600" />
           </div>
-          <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">PowerPulse</h2>
+          <h2 className="mt-6 text-3xl font-extrabold text-gray-900 dark:text-white">{appConfig.appName}</h2>
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
             Sign in to your account to access your UPS monitoring dashboard
           </p>
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-500">
-            v1.8.0 by <a
-              href="https://github.com/blink-zero" 
+            v{appConfig.version} by <a
+              href={appConfig.githubUrl} 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-primary-600 hover:text-primary-500 dark:text-primary-400 dark:hover:text-primary-300"
             >
-              blink-zero
+              {appConfig.copyrightOwner}
             </a>
           </p>
         </div>
