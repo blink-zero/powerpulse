@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useInactivityTimer } from '../../hooks/useInactivityTimer';
+import useInactivityTimer from '../../hooks/useInactivityTimer';
 
 // Mock the window events
 const mockAddEventListener = vi.fn();
@@ -36,7 +36,7 @@ describe('useInactivityTimer Hook', () => {
     const onTimeout = vi.fn();
     const timeoutMinutes = 30;
     
-    renderHook(() => useInactivityTimer(onTimeout, timeoutMinutes));
+    renderHook(() => useInactivityTimer({ onTimeout, timeout: timeoutMinutes }));
     
     // Check that event listeners were added for all activity events
     expect(mockAddEventListener).toHaveBeenCalledWith('mousemove', expect.any(Function));
@@ -50,7 +50,7 @@ describe('useInactivityTimer Hook', () => {
     const onTimeout = vi.fn();
     const timeoutMinutes = 30;
     
-    const { unmount } = renderHook(() => useInactivityTimer(onTimeout, timeoutMinutes));
+    const { unmount } = renderHook(() => useInactivityTimer({ onTimeout, timeout: timeoutMinutes }));
     
     // Unmount the hook
     unmount();
@@ -67,7 +67,7 @@ describe('useInactivityTimer Hook', () => {
     const onTimeout = vi.fn();
     const timeoutMinutes = 30;
     
-    renderHook(() => useInactivityTimer(onTimeout, timeoutMinutes));
+    renderHook(() => useInactivityTimer({ onTimeout, timeout: timeoutMinutes }));
     
     // Fast-forward time past the timeout
     vi.advanceTimersByTime(timeoutMinutes * 60 * 1000 + 1000);
@@ -80,7 +80,7 @@ describe('useInactivityTimer Hook', () => {
     const onTimeout = vi.fn();
     const timeoutMinutes = 30;
     
-    renderHook(() => useInactivityTimer(onTimeout, timeoutMinutes));
+    renderHook(() => useInactivityTimer({ onTimeout, timeout: timeoutMinutes }));
     
     // Get the activity handler (first argument of the first call)
     const activityHandler = mockAddEventListener.mock.calls[0][1];

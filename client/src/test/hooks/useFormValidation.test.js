@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useFormValidation } from '../../hooks/useFormValidation';
+import useFormValidation from '../../hooks/useFormValidation';
 
 describe('useFormValidation Hook', () => {
   const initialValues = {
@@ -30,11 +30,35 @@ describe('useFormValidation Hook', () => {
     }
   };
 
+  // Create a validation function that uses the validation rules
+  const validateFn = (values) => {
+    const errors = {};
+    
+    // Check each field against its validation rules
+    Object.keys(validationRules).forEach(field => {
+      const rules = validationRules[field];
+      const value = values[field];
+      
+      // Check if required field is empty
+      if (rules.required && (!value || value.trim() === '')) {
+        errors[field] = rules.requiredMessage;
+        return;
+      }
+      
+      // If value exists, check against validator function
+      if (value && rules.validator && !rules.validator(value)) {
+        errors[field] = rules.message;
+      }
+    });
+    
+    return errors;
+  };
+
   const onSubmit = vi.fn();
 
   it('should initialize with the provided values', () => {
     const { result } = renderHook(() => 
-      useFormValidation(initialValues, validationRules, onSubmit)
+      useFormValidation(initialValues, validateFn, onSubmit)
     );
 
     expect(result.current.values).toEqual(initialValues);
@@ -45,7 +69,7 @@ describe('useFormValidation Hook', () => {
 
   it('should update values when handleChange is called', () => {
     const { result } = renderHook(() => 
-      useFormValidation(initialValues, validationRules, onSubmit)
+      useFormValidation(initialValues, validateFn, onSubmit)
     );
 
     act(() => {
@@ -59,7 +83,7 @@ describe('useFormValidation Hook', () => {
 
   it('should mark field as touched when handleBlur is called', () => {
     const { result } = renderHook(() => 
-      useFormValidation(initialValues, validationRules, onSubmit)
+      useFormValidation(initialValues, validateFn, onSubmit)
     );
 
     act(() => {
@@ -73,7 +97,7 @@ describe('useFormValidation Hook', () => {
 
   it('should validate required fields', () => {
     const { result } = renderHook(() => 
-      useFormValidation(initialValues, validationRules, onSubmit)
+      useFormValidation(initialValues, validateFn, onSubmit)
     );
 
     // Trigger validation by attempting to submit
@@ -90,7 +114,7 @@ describe('useFormValidation Hook', () => {
     const { result } = renderHook(() => 
       useFormValidation(
         { ...initialValues, name: 'Jo', email: 'invalid-email', password: 'short' },
-        validationRules,
+        validateFn,
         onSubmit
       )
     );
@@ -113,7 +137,7 @@ describe('useFormValidation Hook', () => {
     };
 
     const { result } = renderHook(() => 
-      useFormValidation(validValues, validationRules, onSubmit)
+      useFormValidation(validValues, validateFn, onSubmit)
     );
 
     await act(async () => {
@@ -136,7 +160,7 @@ describe('useFormValidation Hook', () => {
     };
 
     const { result } = renderHook(() => 
-      useFormValidation(validValues, validationRules, delayedOnSubmit)
+      useFormValidation(validValues, validateFn, delayedOnSubmit)
     );
 
     let submissionPromise;
@@ -159,17 +183,13 @@ describe('useFormValidation Hook', () => {
 
   it('should reset the form when resetForm is called', () => {
     const { result } = renderHook(() => 
-      useFormValidation(
-        { ...initialValues, name: 'John Doe' },
-        validationRules,
-        onSubmit
-      )
+      useFormValidation(initialValues, validateFn, onSubmit)
     );
 
     // First, make some changes
     act(() => {
       result.current.handleChange({
-        target: { name: 'email', value: 'john@example.com' }
+        target: { name: 'name', value: 'John Doe' }
       });
       
       result.current.handleBlur({

@@ -6,12 +6,13 @@ import { useState, useCallback } from 'react';
 
 /**
  * Hook for form validation
- * 
+ *
  * @param {Object} initialValues - Initial form values
  * @param {Function} validateFn - Validation function that returns validation errors
+ * @param {Function} onSubmit - Function to call on successful form submission
  * @returns {Object} - Form state and helper functions
  */
-const useFormValidation = (initialValues, validateFn) => {
+const useFormValidation = (initialValues, validateFn, onSubmit) => {
   const [values, setValues] = useState(initialValues);
   const [errors, setErrors] = useState({});
   const [touched, setTouched] = useState({});
@@ -24,7 +25,7 @@ const useFormValidation = (initialValues, validateFn) => {
       ...prev,
       [name]: value
     }));
-    
+
     // Mark field as touched
     setTouched(prev => ({
       ...prev,
@@ -39,7 +40,7 @@ const useFormValidation = (initialValues, validateFn) => {
       ...prev,
       [name]: true
     }));
-    
+
     // Validate on blur
     const validationErrors = validateFn(values);
     setErrors(validationErrors);
@@ -61,20 +62,20 @@ const useFormValidation = (initialValues, validateFn) => {
   }, [values, validateFn]);
 
   // Handle form submission
-  const handleSubmit = useCallback((onSubmit) => async (e) => {
+  const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Mark all fields as touched
     const allTouched = Object.keys(values).reduce((acc, key) => {
       acc[key] = true;
       return acc;
     }, {});
     setTouched(allTouched);
-    
+
     // Validate form
     const isValid = validateForm();
-    
+
     if (isValid) {
       try {
         await onSubmit(values);
@@ -82,9 +83,9 @@ const useFormValidation = (initialValues, validateFn) => {
         console.error('Form submission error:', error);
       }
     }
-    
+
     setIsSubmitting(false);
-  }, [values, validateForm]);
+  }, [values, validateForm, onSubmit]);
 
   return {
     values,
