@@ -17,6 +17,8 @@ router.get('/battery-history/:upsId', authenticateToken, (req, res) => {
   daysAgo.setDate(daysAgo.getDate() - days);
   const daysAgoStr = daysAgo.toISOString();
   
+  console.log(`Debug: Filtering battery history from ${daysAgoStr} to now`);
+  
   // Get battery history for this UPS for the last N days
   db.all(
     'SELECT * FROM battery_history WHERE ups_id = ? AND timestamp >= ? ORDER BY timestamp ASC',
@@ -28,6 +30,17 @@ router.get('/battery-history/:upsId', authenticateToken, (req, res) => {
       }
       
       console.log(`Debug: Found ${history?.length || 0} battery history records in the last ${days} days`);
+      
+      if (history && history.length > 0) {
+        // Log the date range of the returned data
+        const oldestRecord = new Date(history[0].timestamp);
+        const newestRecord = new Date(history[history.length - 1].timestamp);
+        console.log(`Debug: Date range of returned data: ${oldestRecord.toISOString()} to ${newestRecord.toISOString()}`);
+        
+        // Calculate how many hours of data we have
+        const hoursDiff = (newestRecord - oldestRecord) / (1000 * 60 * 60);
+        console.log(`Debug: Data spans approximately ${hoursDiff.toFixed(1)} hours (${(hoursDiff / 24).toFixed(1)} days)`);
+      }
       
       // Return the raw data
       return res.json(history || []);

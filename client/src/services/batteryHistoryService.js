@@ -3,9 +3,10 @@ import axios from 'axios';
 /**
  * Fetches battery history data for a specific UPS system
  * @param {number} upsId - The ID of the UPS system
+ * @param {number} days - Number of days of history to fetch (default: 7)
  * @returns {Promise<Array>} - Array of battery history records
  */
-export const fetchBatteryHistory = async (upsId) => {
+export const fetchBatteryHistory = async (upsId, days = 7) => {
   try {
     // Try the standard endpoint first
     try {
@@ -23,9 +24,9 @@ export const fetchBatteryHistory = async (upsId) => {
       } catch (altErr) {
         console.warn('Alternative endpoint failed:', altErr.message);
         
-        // Try a direct database query using our debug endpoint
-        try {
-          const response = await axios.get(`/api/debug/battery-history/${upsId}?days=7`);
+      // Try a direct database query using our debug endpoint
+      try {
+        const response = await axios.get(`/api/debug/battery-history/${upsId}?days=${days}`);
           console.log('Battery history from debug endpoint:', response.data);
           
           // If we got data, return it
@@ -71,7 +72,7 @@ export const fetchBatteryHistory = async (upsId) => {
               console.log('Manual recording response:', recordResponse.data);
               
               // Try to fetch the data again
-              const retryResponse = await axios.get(`/api/debug/battery-history/${upsId}?days=7`);
+              const retryResponse = await axios.get(`/api/debug/battery-history/${upsId}?days=${days}`);
               console.log('Battery history after manual recording:', retryResponse.data);
               return retryResponse.data;
             }

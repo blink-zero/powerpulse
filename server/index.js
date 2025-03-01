@@ -1156,7 +1156,13 @@ app.get('/api/users', authenticateToken, (req, res) => {
 // Get battery history for a UPS system
 app.get('/api/ups/systems/:id/battery', authenticateToken, (req, res) => {
   const upsId = parseInt(req.params.id);
-  const limit = parseInt(req.query.limit) || 100; // Default to 100 records
+  const days = parseInt(req.query.days) || 7; // Default to 7 days
+  
+  // For multi-day views, we need more records to get a good representation
+  // For 1-day view, we can use fewer records
+  const limit = days > 1 ? 300 : 100; // Use more records for multi-day views
+  
+  console.log(`Fetching battery history for UPS ${upsId} for the last ${days} days (limit: ${limit})`);
   
   // Check if UPS system exists
   db.get('SELECT id FROM ups_systems WHERE id = ?', [upsId], (err, ups) => {
@@ -1168,13 +1174,33 @@ app.get('/api/ups/systems/:id/battery', authenticateToken, (req, res) => {
       return res.status(404).json({ message: 'UPS system not found' });
     }
     
-    // Get battery history
+    // Calculate the date for N days ago
+    const daysAgo = new Date();
+    daysAgo.setDate(daysAgo.getDate() - days);
+    const daysAgoStr = daysAgo.toISOString();
+    
+    console.log(`Filtering battery history from ${daysAgoStr} to now`);
+    
+    // Get battery history for this UPS for the last N days
     db.all(
-      'SELECT * FROM battery_history WHERE ups_id = ? ORDER BY timestamp DESC LIMIT ?',
-      [upsId, limit],
+      'SELECT * FROM battery_history WHERE ups_id = ? AND timestamp >= ? ORDER BY timestamp ASC LIMIT ?',
+      [upsId, daysAgoStr, limit],
       (err, history) => {
         if (err) {
           return res.status(500).json({ message: 'Database error', error: err.message });
+        }
+        
+        console.log(`Found ${history?.length || 0} battery history records in the last ${days} days`);
+        
+        if (history && history.length > 0) {
+          // Log the date range of the returned data
+          const oldestRecord = new Date(history[0].timestamp);
+          const newestRecord = new Date(history[history.length - 1].timestamp);
+          console.log(`Date range of returned data: ${oldestRecord.toISOString()} to ${newestRecord.toISOString()}`);
+          
+          // Calculate how many hours of data we have
+          const hoursDiff = (newestRecord - oldestRecord) / (1000 * 60 * 60);
+          console.log(`Data spans approximately ${hoursDiff.toFixed(1)} hours (${(hoursDiff / 24).toFixed(1)} days)`);
         }
         
         return res.json(history || []);

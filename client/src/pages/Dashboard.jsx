@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FiBattery, FiAlertCircle, FiClock, FiThermometer, FiPercent, FiZap, FiActivity, FiRefreshCw, FiCalendar } from 'react-icons/fi';
+import { FiBattery, FiAlertCircle, FiClock, FiThermometer, FiPercent, FiZap, FiActivity, FiRefreshCw, FiCalendar, FiFilter } from 'react-icons/fi';
 import { useSettings } from '../context/SettingsContext';
 import { useBatteryHistory } from '../hooks/useBatteryHistory';
 import { Line } from 'react-chartjs-2';
@@ -12,7 +12,8 @@ import {
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler
 } from 'chart.js';
 
 // Register Chart.js components
@@ -23,7 +24,8 @@ ChartJS.register(
   LineElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
+  Filler // Register the Filler plugin for the 'fill' option
 );
 
 const Dashboard = () => {
@@ -32,13 +34,15 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedUps, setSelectedUps] = useState(null);
+  const [timeFilter, setTimeFilter] = useState(3); // Default to 3 days
   const { 
     batteryHistory, 
     loading: historyLoading, 
     error: historyError,
     recordCurrentCharge,
-    refreshData: refreshBatteryHistory
-  } = useBatteryHistory(selectedUps?.id);
+    refreshData: refreshBatteryHistory,
+    currentTimeFilter
+  } = useBatteryHistory(selectedUps?.id, timeFilter);
   const [lastUpdated, setLastUpdated] = useState(new Date());
 
   useEffect(() => {
@@ -381,10 +385,33 @@ const Dashboard = () => {
                     </h3>
                     <span className="ml-2 text-xs text-gray-500 dark:text-gray-400 flex items-center">
                       <FiCalendar className="mr-1" />
-                      Last 7 days
+                      Last {currentTimeFilter} days
                     </span>
                   </div>
                   <div className="flex items-center">
+                    {/* Time filter dropdown */}
+                    <div className="mr-4 relative">
+                      <div className="flex items-center">
+                        <FiFilter className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-1" />
+                        <select
+                          value={timeFilter}
+                          onChange={(e) => {
+                            const newTimeFilter = Number(e.target.value);
+                            console.log(`Changing time filter from ${timeFilter} to ${newTimeFilter} days`);
+                            setTimeFilter(newTimeFilter);
+                            // Explicitly refresh the data when the filter changes
+                            if (selectedUps) {
+                              setTimeout(() => refreshBatteryHistory(newTimeFilter), 100);
+                            }
+                          }}
+                          className="text-sm bg-transparent border-none text-gray-500 dark:text-gray-400 focus:ring-0 focus:outline-none cursor-pointer pr-8"
+                        >
+                          <option value={1}>Last 24 hours</option>
+                          <option value={3}>Last 3 days</option>
+                        </select>
+                      </div>
+                    </div>
+                    
                     {/* Only show error if we're not showing the placeholder chart */}
                     {historyError && batteryHistory.labels.length > 0 && (
                       <span className="text-xs text-red-500 mr-2">{historyError}</span>
@@ -441,11 +468,11 @@ const Dashboard = () => {
                               maxRotation: 45,
                               color: 'rgba(107, 114, 128, 0.8)',
                               autoSkip: true,
-                              maxTicksLimit: 12,
+                              maxTicksLimit: currentTimeFilter === 1 ? 24 : 14, // Show more ticks for better visibility
                             },
                             title: {
                               display: true,
-                              text: 'Time (Last 7 Days)',
+                              text: `Time (Last ${currentTimeFilter} ${currentTimeFilter === 1 ? 'Day' : 'Days'})`,
                               color: 'rgba(107, 114, 128, 0.8)',
                             }
                           },
@@ -538,7 +565,7 @@ const Dashboard = () => {
                               },
                               title: {
                                 display: true,
-                                text: 'Time (Last 7 Days)',
+                                text: `Time (Last ${currentTimeFilter} ${currentTimeFilter === 1 ? 'Day' : 'Days'})`,
                                 color: 'rgba(107, 114, 128, 0.8)',
                               }
                             },

@@ -5,6 +5,16 @@ All notable changes to the PowerPulse project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.1] - 2025-03-01
+
+### Fixed
+- Fixed battery history time filter issues:
+  - Changed time filter options from 7 days to 3 days for better data representation
+  - Improved client-side filtering to ensure only data within the requested time range is displayed
+  - Added data sampling for multi-day views to get a more representative sample across the full time range
+  - Increased record limit for multi-day views to provide better data coverage
+  - Enhanced logging for better troubleshooting of time filter issues
+
 ## [1.9.0] - 2025-03-01
 
 ### Changed
