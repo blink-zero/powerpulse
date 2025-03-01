@@ -10,6 +10,8 @@ This document provides detailed information about the PowerPulse API endpoints.
 - [NUT Servers API](#nut-servers-api)
 - [UPS Systems API](#ups-systems-api)
 - [Notifications API](#notifications-api)
+- [User Settings API](#user-settings-api)
+- [Debug API](#debug-api)
 - [System API](#system-api)
 
 ## Authentication
@@ -44,6 +46,403 @@ Checks if the application needs initial setup.
 ```json
 {
   "isFirstTimeSetup": true|false
+}
+```
+
+## User Settings API
+
+Endpoints for managing user settings.
+
+### Get User Settings
+
+```
+GET /api/user-settings
+```
+
+Returns the settings for the current user.
+
+**Response:**
+```json
+{
+  "inactivity_timeout": 30,
+  "discord_webhook_url": "https://discord.com/api/webhooks/...",
+  "slack_webhook_url": "https://hooks.slack.com/services/...",
+  "notifications_enabled": 1,
+  "battery_notifications": 1,
+  "low_battery_notifications": 1,
+  "email_notifications": 0,
+  "email_recipients": "",
+  "poll_interval": 30
+}
+```
+
+If no settings exist for the user, default settings are returned.
+
+### Update User Settings
+
+```
+POST /api/user-settings
+```
+
+Updates the settings for the current user.
+
+**Request Body:**
+```json
+{
+  "inactivity_timeout": 60,
+  "discord_webhook_url": "https://discord.com/api/webhooks/...",
+  "slack_webhook_url": "https://hooks.slack.com/services/...",
+  "notifications_enabled": true,
+  "battery_notifications": true,
+  "low_battery_notifications": true,
+  "email_notifications": false,
+  "email_recipients": "",
+  "poll_interval": 60
+}
+```
+
+All fields are optional. Only the fields that are provided will be updated.
+
+**Response:**
+```json
+{
+  "message": "User settings updated",
+  "inactivity_timeout": 60,
+  "discord_webhook_url": "https://discord.com/api/webhooks/...",
+  "slack_webhook_url": "https://hooks.slack.com/services/...",
+  "notifications_enabled": 1,
+  "battery_notifications": 1,
+  "low_battery_notifications": 1,
+  "email_notifications": 0,
+  "email_recipients": "",
+  "poll_interval": 60
+}
+```
+
+## Debug API
+
+Endpoints for debugging and testing. These endpoints are intended for development and troubleshooting purposes only.
+
+### Get Battery History (Debug)
+
+```
+GET /api/debug/battery-history/:upsId
+```
+
+Returns the raw battery history for a UPS system directly from the database.
+
+**Query Parameters:**
+- `days` (optional): Number of days of history to return (default: 7)
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "ups_id": 1,
+    "charge_percent": 100,
+    "timestamp": "2025-02-27T12:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "ups_id": 1,
+    "charge_percent": 99,
+    "timestamp": "2025-02-27T12:05:00.000Z"
+  }
+]
+```
+
+### Record Battery Charge (Debug)
+
+```
+POST /api/debug/record-battery/:upsId/:charge
+```
+
+Manually records a battery charge percentage for a UPS system.
+
+**URL Parameters:**
+- `upsId`: ID of the UPS system
+- `charge`: Battery charge percentage (0-100)
+
+**Response:**
+```json
+{
+  "message": "Battery charge recorded",
+  "id": 3,
+  "upsId": 1,
+  "chargePercent": 98,
+  "timestamp": "2025-02-27T12:10:00.000Z"
+}
+```
+
+### List Database Tables
+
+```
+GET /api/debug/tables
+```
+
+Returns a list of all tables in the database.
+
+**Response:**
+```json
+[
+  {
+    "name": "users"
+  },
+  {
+    "name": "nut_servers"
+  },
+  {
+    "name": "ups_systems"
+  }
+]
+```
+
+### Show Table Schema
+
+```
+GET /api/debug/schema/:table
+```
+
+Returns the schema for a specific database table.
+
+**URL Parameters:**
+- `table`: Name of the table
+
+**Response:**
+```json
+[
+  {
+    "cid": 0,
+    "name": "id",
+    "type": "INTEGER",
+    "notnull": 0,
+    "dflt_value": null,
+    "pk": 1
+  },
+  {
+    "cid": 1,
+    "name": "username",
+    "type": "TEXT",
+    "notnull": 1,
+    "dflt_value": null,
+    "pk": 0
+  }
+]
+```
+
+### Test UPS Monitoring System
+
+```
+POST /api/debug/test-ups-monitoring
+```
+
+Tests the UPS monitoring system by simulating a status change.
+
+**Request Body:**
+```json
+{
+  "ups_id": 1,
+  "ups_name": "Server Room UPS",
+  "server_id": 1,
+  "new_status": "On Battery",
+  "old_status": "Online"
+}
+```
+
+All fields are optional and have default values.
+
+**Response:**
+```json
+{
+  "message": "UPS monitoring test completed",
+  "result": {
+    "success": true,
+    "notifications": {
+      "discord": true,
+      "slack": true,
+      "email": false
+    }
+  }
+}
+```
+
+### Force UPS Status Change
+
+```
+POST /api/debug/force-status-change
+```
+
+Forces a UPS status change and sends notifications to all users with notifications enabled.
+
+**Request Body:**
+```json
+{
+  "ups_id": 1,
+  "new_status": "On Battery",
+  "old_status": "Online"
+}
+```
+
+All fields are optional and have default values.
+
+**Response:**
+```json
+{
+  "message": "Forced status change notifications processed",
+  "ups_id": 1,
+  "old_status": "Online",
+  "new_status": "On Battery",
+  "results": [
+    {
+      "user_id": 1,
+      "success": true,
+      "results": {
+        "discord": { "success": true },
+        "slack": { "success": true },
+        "email": null
+      }
+    }
+  ]
+}
+```
+
+### Get Raw UPS Status Values
+
+```
+GET /api/debug/ups-status-raw
+```
+
+Returns the raw UPS status values from the NUT server.
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "name": "ups1",
+    "displayName": "ups1",
+    "model": "APC Smart-UPS 1500",
+    "brand": "APC",
+    "serial": "AS1234567890",
+    "status": "OL",
+    "raw_status": "OL",
+    "batteryCharge": 100,
+    "batteryVoltage": 27.3,
+    "inputVoltage": 230.1,
+    "outputVoltage": 230.0,
+    "runtimeRemaining": 120,
+    "load": 30,
+    "temperature": 25.5,
+    "server": {
+      "id": 1,
+      "host": "localhost",
+      "port": 3493
+    }
+  }
+]
+```
+
+### Count Records in a Table
+
+```
+GET /api/debug/count/:table
+```
+
+Returns the number of records in a specific database table.
+
+**URL Parameters:**
+- `table`: Name of the table
+
+**Response:**
+```json
+{
+  "count": 10
+}
+```
+
+### Check Notification Settings
+
+```
+GET /api/debug/notification-settings
+```
+
+Returns the notification settings for the current user with masked webhook URLs for security.
+
+**Response:**
+```json
+{
+  "notifications_enabled": true,
+  "battery_notifications": true,
+  "low_battery_notifications": true,
+  "discord_webhook_url": "Configured",
+  "slack_webhook_url": "Not configured",
+  "email_notifications": false,
+  "email_recipients": "None"
+}
+```
+
+### Test Raw Notification
+
+```
+POST /api/debug/raw-notification-test
+```
+
+Tests sending a notification with a raw NUT status code.
+
+**Request Body:**
+```json
+{
+  "status": "OB",
+  "webhook_url": "https://discord.com/api/webhooks/...",
+  "webhook_type": "discord"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Raw notification test sent successfully",
+  "status": "OB",
+  "translated_status": "On Battery",
+  "webhook_type": "discord",
+  "result": "Success"
+}
+```
+
+### Test Notification
+
+```
+POST /api/debug/test-notification
+```
+
+Tests sending a notification using the current user's notification settings.
+
+**Request Body:**
+```json
+{
+  "status": "On Battery",
+  "previous_status": "Online",
+  "ups_name": "Debug UPS",
+  "ups_id": 999
+}
+```
+
+All fields are optional and have default values.
+
+**Response:**
+```json
+{
+  "message": "Debug notification sent successfully",
+  "settings": {
+    "discord_webhook_url": "Configured",
+    "slack_webhook_url": "Not configured",
+    "email_notifications": false,
+    "email_recipients": "None"
+  },
+  "response": {
+    "message": "Notifications sent successfully"
+  }
 }
 ```
 

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.9.1] - 2025-03-01
 
+### Added
+- Documented previously undocumented API endpoints:
+  - Added User Settings API documentation
+  - Added Debug API documentation with all available debug endpoints
+  - Updated API.md table of contents to include new sections
+  - Provided detailed request/response examples for all endpoints
+
 ### Fixed
 - Fixed battery history time filter issues:
   - Changed time filter options from 7 days to 3 days for better data representation
