@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import useInactivityTimer from '../hooks/useInactivityTimer';
-import { authAPI } from '../services/api';
+import { authAPI, userSettingsAPI } from '../services/api';
 import axios from 'axios'; // Still needed for setting default headers
 
 const AuthContext = createContext();
@@ -11,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [inactivityTimeout, setInactivityTimeout] = useState(30); // Default 30 minutes
+  const [inactivityTimeout, setInactivityTimeout] = useState(30); // Default 30 minutes, will be updated from server
 
   // Logout user
   const logout = useCallback(() => {
@@ -29,6 +29,17 @@ export const AuthProvider = ({ children }) => {
     if (storedUser && token) {
       setUser(JSON.parse(storedUser));
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      
+      // Load user settings from server
+      userSettingsAPI.getSettings()
+        .then(response => {
+          if (response.data && response.data.inactivity_timeout) {
+            setInactivityTimeout(response.data.inactivity_timeout);
+          }
+        })
+        .catch(error => {
+          console.error('Error loading user settings:', error);
+        });
     }
     
     setLoading(false);
@@ -44,6 +55,15 @@ export const AuthProvider = ({ children }) => {
   // Update inactivity timeout
   const updateInactivityTimeout = useCallback((minutes) => {
     setInactivityTimeout(minutes);
+    
+    // Save to server
+    userSettingsAPI.updateSettings({ inactivity_timeout: minutes })
+      .then(response => {
+        console.log('Inactivity timeout saved to server:', response.data);
+      })
+      .catch(error => {
+        console.error('Error saving inactivity timeout to server:', error);
+      });
   }, []);
 
   // Check if this is the first time setup

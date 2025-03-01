@@ -94,6 +94,12 @@ export const notificationsAPI = {
   sendUpsStatusNotification: (data) => apiClient.post('/notifications/ups-status', data)
 };
 
+// User Settings API
+export const userSettingsAPI = {
+  getSettings: () => apiClient.get('/user-settings'),
+  updateSettings: (settings) => apiClient.post('/user-settings', settings)
+};
+
 // System API
 export const systemAPI = {
   getVersion: () => apiClient.get('/system/version'),
@@ -106,5 +112,6 @@ export default {
   nutServers: nutServersAPI,
   upsSystems: upsSystemsAPI,
   notifications: notificationsAPI,
+  userSettings: userSettingsAPI,
   system: systemAPI
 };

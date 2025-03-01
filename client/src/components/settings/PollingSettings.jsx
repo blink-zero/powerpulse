@@ -1,14 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FiSave, FiClock } from 'react-icons/fi';
 import { useSettings } from '../../context/SettingsContext';
 
 const PollingSettings = ({ pollInterval, setPollInterval, setSuccess }) => {
-  const { settings, updateSetting } = useSettings();
+  const { settings, updateSetting, saveUserSettings } = useSettings();
+  const [isSaving, setIsSaving] = useState(false);
 
-  const savePollInterval = () => {
-    updateSetting('pollInterval', pollInterval);
-    setSuccess('Poll interval updated successfully');
-    setTimeout(() => setSuccess(null), 3000);
+  const savePollInterval = async () => {
+    setIsSaving(true);
+    try {
+      // Update local setting
+      updateSetting('pollInterval', pollInterval);
+      
+      // Save to server
+      await saveUserSettings();
+      
+      setSuccess('Poll interval updated successfully and saved to server');
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (error) {
+      console.error('Error saving poll interval to server:', error);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -39,10 +52,11 @@ const PollingSettings = ({ pollInterval, setPollInterval, setSuccess }) => {
           <span className="text-sm font-medium text-gray-900 dark:text-white">{pollInterval}s</span>
           <button
             onClick={savePollInterval}
-            className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            disabled={isSaving}
+            className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <FiSave className="mr-2 -ml-1 h-4 w-4" />
-            Save
+            {isSaving ? 'Saving...' : 'Save'}
           </button>
         </div>
       </div>
