@@ -1,6 +1,6 @@
 {
   "name": "powerpulse-server",
-  "version": "1.8.2",
+  "version": "1.8.3",
   "description": "Backend server for PowerPulse - A modern UPS monitoring dashboard",
   "author": "blink-zero",
   "repository": {

@@ -1,7 +1,7 @@
 # PowerPulse
 
 ![PowerPulse Logo](https://img.shields.io/badge/PowerPulse-UPS%20Monitoring-blue)
-![Version](https://img.shields.io/badge/version-1.8.2-green)
+![Version](https://img.shields.io/badge/version-1.8.3-green)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 PowerPulse is a modern UPS (Uninterruptible Power Supply) monitoring dashboard integrated with Network UPS Tools (NUT). It provides a clean, responsive interface for monitoring and managing your UPS systems.
@@ -138,12 +138,12 @@ You can also run PowerPulse directly from Docker Hub without cloning the reposit
 
 3. Download the Docker Compose file:
    ```
-   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.8.2/docker-compose.dockerhub.yml -O docker-compose.yml
+   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.8.3/docker-compose.dockerhub.yml -O docker-compose.yml
    ```
 
 4. Create an environment file:
    ```
-   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.8.2/.env.example -O .env
+   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.8.3/.env.example -O .env
    # Edit .env with your configuration
    ```
 
@@ -151,6 +151,162 @@ You can also run PowerPulse directly from Docker Hub without cloning the reposit
    ```
    docker-compose up -d
    ```
+
+### Upgrading
+
+#### Standard Installation Upgrade
+
+1. Pull the latest changes from the repository:
+   ```
+   cd powerpulse
+   git pull
+   ```
+
+2. Install any new dependencies:
+   ```
+   npm run install-all
+   ```
+
+3. Check for any new environment variables in `.env.example` and add them to your `.env` file if needed.
+
+4. Restart the application:
+   ```
+   npm run dev
+   ```
+   
+   For production:
+   ```
+   npm run build
+   npm run prod
+   ```
+
+#### Docker Installation Upgrade
+
+1. Pull the latest changes from the repository:
+   ```
+   cd powerpulse
+   git pull
+   ```
+
+2. Check for any new environment variables in `.env.example` and add them to your `.env` file if needed.
+
+3. Rebuild and restart the containers:
+   ```
+   docker-compose down
+   docker-compose build --no-cache
+   docker-compose up -d
+   ```
+
+#### Docker Hub Installation Upgrade
+
+1. Update your docker-compose.yml file to use the latest version:
+   ```
+   # Edit your docker-compose.yml file and update the image tags
+   # From:
+   # image: blinkzero/powerpulse-server:1.8.3
+   # image: blinkzero/powerpulse-client:1.8.3
+   # To:
+   # image: blinkzero/powerpulse-server:1.8.3 (or whatever the latest version is)
+   # image: blinkzero/powerpulse-client:1.8.3 (or whatever the latest version is)
+   ```
+
+   Alternatively, download the latest docker-compose file (replace X.Y.Z with the latest version):
+   ```
+   wget https://raw.githubusercontent.com/blink-zero/powerpulse/vX.Y.Z/docker-compose.dockerhub.yml -O docker-compose.yml
+   ```
+
+2. Check for any new environment variables in the latest `.env.example` and add them to your `.env` file if needed:
+   ```
+   wget https://raw.githubusercontent.com/blink-zero/powerpulse/vX.Y.Z/.env.example -O .env.example
+   # Compare .env.example with your .env file and add any new variables
+   ```
+
+3. Pull the latest images and restart the containers:
+   ```
+   docker-compose down
+   docker-compose pull
+   docker-compose up -d
+   ```
+
+#### Database Considerations During Upgrades
+
+PowerPulse automatically handles database migrations during startup. However, it's always a good practice to back up your database before upgrading:
+
+1. **Backup your database** before upgrading (for all installation methods):
+   ```
+   # For standard installation
+   cp server/data/powerpulse.db server/data/powerpulse.db.backup-$(date +%Y%m%d)
+   
+   # For Docker installation
+   docker cp powerpulse-server:/app/data/powerpulse.db ./powerpulse.db.backup-$(date +%Y%m%d)
+   ```
+
+2. If you encounter any issues after upgrading, you can restore your backup:
+   ```
+   # For standard installation
+   cp server/data/powerpulse.db.backup-YYYYMMDD server/data/powerpulse.db
+   
+   # For Docker installation
+   docker cp ./powerpulse.db.backup-YYYYMMDD powerpulse-server:/app/data/powerpulse.db
+   docker restart powerpulse-server
+   ```
+
+3. The application automatically applies any pending database migrations during startup. Check the server logs for any migration-related messages:
+   ```
+   # For standard installation
+   npm run server
+   
+   # For Docker installation
+   docker logs powerpulse-server
+   ```
+
+#### Checking for Updates
+
+To stay informed about new releases and updates:
+
+1. **Check the GitHub repository**: Visit the [PowerPulse GitHub repository](https://github.com/blink-zero/powerpulse) to see the latest releases and version information.
+
+2. **Review the CHANGELOG**: Before upgrading, review the [CHANGELOG.md](CHANGELOG.md) file to understand what changes are included in the new version.
+
+3. **Check your current version**: You can see your current version in the footer of the PowerPulse web interface or by checking the version badge in your README.md file.
+
+4. **Subscribe to releases**: On GitHub, you can click the "Watch" button and select "Custom" and then "Releases" to be notified when new versions are released.
+
+#### Troubleshooting Upgrade Issues
+
+If you encounter issues during or after upgrading, try these troubleshooting steps:
+
+1. **Check server logs for errors**:
+   ```
+   # For standard installation
+   npm run server
+   
+   # For Docker installation
+   docker logs powerpulse-server
+   ```
+
+2. **Verify database migrations**:
+   - Look for migration-related messages in the server logs
+   - If you see errors related to database schema or missing tables, try restoring from backup
+
+3. **Client-side issues**:
+   - Clear your browser cache and reload the page
+   - Check browser console for JavaScript errors
+   - Verify that the client is connecting to the correct server URL
+
+4. **Docker-specific issues**:
+   - Ensure volumes are properly mounted
+   - Check container health status: `docker ps`
+   - Verify network connectivity between containers: `docker network inspect powerpulse-network`
+
+5. **Dependency issues**:
+   - For standard installation, try reinstalling dependencies: `npm run install-all`
+   - For Docker installation, rebuild images: `docker-compose build --no-cache`
+
+6. **Rollback to previous version**:
+   - If all else fails, you can roll back to the previous version
+   - For standard installation: `git checkout v1.8.3` (replace with your previous version)
+   - For Docker Hub installation: update docker-compose.yml to use the previous version tags
 
 ### Testing with Sample Data
 

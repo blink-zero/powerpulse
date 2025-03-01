@@ -5,6 +5,21 @@ All notable changes to the PowerPulse project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.8.3] - 2025-03-01
+
+### Added
+- Comprehensive upgrade documentation:
+  - Added detailed upgrade instructions for all installation methods
+  - Added database backup and restore procedures
+  - Added troubleshooting steps for common upgrade issues
+  - Added guidance on checking for updates
+
+### Improved
+- Enhanced documentation organization:
+  - Moved upgrade section to a more logical location after installation
+  - Improved README structure for better user experience
+  - Added more detailed explanations for upgrade procedures
+
 ## [1.8.2] - 2025-02-28
 
 ### Added
