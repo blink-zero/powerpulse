@@ -18,6 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Created ApplicationInfo component to display application details
   - Included version, repository link, license, and copyright information
   - Integrated with the centralized configuration system
+- Status indicators for notification settings:
+  - Added visual indicators showing whether Discord webhook is configured
+  - Added visual indicators showing whether Slack webhook is configured
+  - Added visual indicators showing whether Email notifications are configured
+  - Improved user experience with clear configuration status
 
 ### Improved
 - Enhanced documentation organization:
@@ -27,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced Settings page organization:
   - Added dedicated tab for application information
   - Improved navigation with clear tab labels and icons
+  - Added status badges to notification settings for better visibility
 
 ## [1.8.2] - 2025-02-28
 

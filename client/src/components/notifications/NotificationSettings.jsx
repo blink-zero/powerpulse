@@ -99,6 +99,15 @@ const NotificationSettings = ({ setError, setSuccess }) => {
               <FiChevronRight className="h-4 w-4 mr-2" />
             }
             <span>Discord Notifications</span>
+            {settings.discordWebhookUrl ? (
+              <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+                Configured
+              </span>
+            ) : (
+              <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                Not Set
+              </span>
+            )}
           </div>
           
           {expandedSections.discord && (
@@ -125,6 +134,15 @@ const NotificationSettings = ({ setError, setSuccess }) => {
               <FiChevronRight className="h-4 w-4 mr-2" />
             }
             <span>Slack Notifications</span>
+            {settings.slackWebhookUrl ? (
+              <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+                Configured
+              </span>
+            ) : (
+              <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                Not Set
+              </span>
+            )}
           </div>
           
           {expandedSections.slack && (
@@ -151,6 +169,15 @@ const NotificationSettings = ({ setError, setSuccess }) => {
               <FiChevronRight className="h-4 w-4 mr-2" />
             }
             <span>Email Notifications</span>
+            {settings.emailRecipients ? (
+              <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100">
+                Configured
+              </span>
+            ) : (
+              <span className="ml-2 px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300">
+                Not Set
+              </span>
+            )}
           </div>
           
           {expandedSections.email && (
