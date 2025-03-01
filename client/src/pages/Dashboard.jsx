@@ -395,15 +395,7 @@ const Dashboard = () => {
                         <FiFilter className="h-4 w-4 text-gray-500 dark:text-gray-400 mr-1" />
                         <select
                           value={timeFilter}
-                          onChange={(e) => {
-                            const newTimeFilter = Number(e.target.value);
-                            console.log(`Changing time filter from ${timeFilter} to ${newTimeFilter} days`);
-                            setTimeFilter(newTimeFilter);
-                            // Explicitly refresh the data when the filter changes
-                            if (selectedUps) {
-                              setTimeout(() => refreshBatteryHistory(newTimeFilter), 100);
-                            }
-                          }}
+                          onChange={(e) => setTimeFilter(Number(e.target.value))}
                           className="text-sm bg-transparent border-none text-gray-500 dark:text-gray-400 focus:ring-0 focus:outline-none cursor-pointer pr-8"
                         >
                           <option value={1}>Last 24 hours</option>
@@ -412,16 +404,11 @@ const Dashboard = () => {
                       </div>
                     </div>
                     
-                    {/* Only show error if we're not showing the placeholder chart */}
-                    {historyError && batteryHistory.labels.length > 0 && (
+                    {historyError && (
                       <span className="text-xs text-red-500 mr-2">{historyError}</span>
                     )}
                     <button 
-                      onClick={() => {
-                        if (selectedUps) {
-                          refreshBatteryHistory();
-                        }
-                      }}
+                      onClick={() => refreshBatteryHistory()}
                       className="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                       title="Refresh battery history"
                     >
@@ -447,156 +434,23 @@ const Dashboard = () => {
                           y: {
                             beginAtZero: true,
                             max: 100,
-                            grid: {
-                              color: 'rgba(75, 85, 99, 0.1)',
-                            },
-                            ticks: {
-                              callback: (value) => `${value}%`,
-                              color: 'rgba(107, 114, 128, 0.8)',
-                            },
                             title: {
                               display: true,
-                              text: 'Battery Charge (%)',
-                              color: 'rgba(107, 114, 128, 0.8)',
+                              text: 'Battery Charge (%)'
                             }
                           },
                           x: {
-                            grid: {
-                              display: false,
-                            },
-                            ticks: {
-                              maxRotation: 45,
-                              color: 'rgba(107, 114, 128, 0.8)',
-                              autoSkip: true,
-                              maxTicksLimit: currentTimeFilter === 1 ? 24 : 14, // Show more ticks for better visibility
-                            },
                             title: {
                               display: true,
-                              text: `Time (Last ${currentTimeFilter} ${currentTimeFilter === 1 ? 'Day' : 'Days'})`,
-                              color: 'rgba(107, 114, 128, 0.8)',
+                              text: `Time (Last ${currentTimeFilter} ${currentTimeFilter === 1 ? 'Day' : 'Days'})`
                             }
-                          },
-                        },
-                        plugins: {
-                          legend: {
-                            position: 'top',
-                            labels: {
-                              boxWidth: 15,
-                              usePointStyle: true,
-                              pointStyle: 'circle',
-                            },
-                          },
-                          tooltip: {
-                            backgroundColor: 'rgba(17, 24, 39, 0.8)',
-                            titleColor: 'rgba(255, 255, 255, 1)',
-                            bodyColor: 'rgba(255, 255, 255, 1)',
-                            padding: 10,
-                            cornerRadius: 4,
-                            displayColors: false,
-                            callbacks: {
-                              title: (tooltipItems) => {
-                                return formatDate(tooltipItems[0].label);
-                              }
-                            }
-                          },
-                        },
-                        elements: {
-                          line: {
-                            tension: 0.4,
-                          },
-                          point: {
-                            radius: 2,
-                            hoverRadius: 5,
-                          },
-                        },
-                        interaction: {
-                          mode: 'index',
-                          intersect: false,
-                        },
+                          }
+                        }
                       }}
                     />
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-full">
-                      <p className="text-gray-500 dark:text-gray-400 mb-4">No history data available yet</p>
-                      <Line
-                        data={{
-                          labels: ['Now', '-1d', '-2d', '-3d', '-4d', '-5d', '-6d'],
-                          datasets: [
-                            {
-                              label: 'Battery Charge (%)',
-                              data: [selectedUps.batteryCharge, selectedUps.batteryCharge, selectedUps.batteryCharge, 
-                                     selectedUps.batteryCharge, selectedUps.batteryCharge, selectedUps.batteryCharge, 
-                                     selectedUps.batteryCharge],
-                              borderColor: 'rgb(14, 165, 233)',
-                              backgroundColor: 'rgba(14, 165, 233, 0.5)',
-                              borderDashed: true,
-                              tension: 0.3,
-                              fill: true,
-                            },
-                          ],
-                        }}
-                        options={{
-                          responsive: true,
-                          maintainAspectRatio: false,
-                          scales: {
-                            y: {
-                              beginAtZero: true,
-                              max: 100,
-                              grid: {
-                                color: 'rgba(75, 85, 99, 0.1)',
-                              },
-                              ticks: {
-                                callback: (value) => `${value}%`,
-                                color: 'rgba(107, 114, 128, 0.8)',
-                              },
-                              title: {
-                                display: true,
-                                text: 'Battery Charge (%)',
-                                color: 'rgba(107, 114, 128, 0.8)',
-                              }
-                            },
-                            x: {
-                              grid: {
-                                display: false,
-                              },
-                              ticks: {
-                                maxRotation: 0,
-                                color: 'rgba(107, 114, 128, 0.8)',
-                              },
-                              title: {
-                                display: true,
-                                text: `Time (Last ${currentTimeFilter} ${currentTimeFilter === 1 ? 'Day' : 'Days'})`,
-                                color: 'rgba(107, 114, 128, 0.8)',
-                              }
-                            },
-                          },
-                          plugins: {
-                            legend: {
-                              position: 'top',
-                              labels: {
-                                boxWidth: 15,
-                                usePointStyle: true,
-                                pointStyle: 'circle',
-                              },
-                            },
-                            tooltip: {
-                              enabled: false,
-                            },
-                          },
-                          elements: {
-                            line: {
-                              tension: 0.4,
-                              borderDash: [5, 5],
-                            },
-                            point: {
-                              radius: 0,
-                            },
-                          },
-                        }}
-                      />
-                      <p className="text-xs text-gray-400 dark:text-gray-500 mt-4">
-                        Battery history will be recorded automatically every 5 minutes
-                      </p>
+                    <div className="flex items-center justify-center h-full">
+                      <p className="text-gray-500 dark:text-gray-400">No history data available yet</p>
                     </div>
                   )}
                 </div>

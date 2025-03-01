@@ -22,6 +22,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Increased record limit for multi-day views to provide better data coverage
   - Enhanced logging for better troubleshooting of time filter issues
 
+### Improved
+- Simplified battery history implementation:
+  - Streamlined data fetching and processing in useBatteryHistory hook
+  - Reduced complexity in batteryHistoryService by using a single reliable endpoint
+  - Simplified chart configuration in Dashboard component
+  - Removed excessive logging and error handling
+  - Improved code readability and maintainability
+
 ## [1.9.0] - 2025-03-01
 
 ### Changed
