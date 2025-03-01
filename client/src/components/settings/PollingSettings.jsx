@@ -1,14 +1,44 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { FiSave, FiClock } from 'react-icons/fi';
 import { useSettings } from '../../context/SettingsContext';
 
 const PollingSettings = ({ pollInterval, setPollInterval, setSuccess }) => {
   const { settings, updateSetting } = useSettings();
+  const [localPollInterval, setLocalPollInterval] = useState(pollInterval);
+  
+  // Update local state when settings change
+  useEffect(() => {
+    setLocalPollInterval(settings.pollInterval);
+  }, [settings.pollInterval]);
+  
+  // Update parent state when local state changes
+  useEffect(() => {
+    setPollInterval(localPollInterval);
+  }, [localPollInterval, setPollInterval]);
 
-  const savePollInterval = () => {
-    updateSetting('pollInterval', pollInterval);
-    setSuccess('Poll interval updated successfully');
-    setTimeout(() => setSuccess(null), 3000);
+  const savePollInterval = async () => {
+    console.log(`Saving poll interval: ${localPollInterval}`);
+    
+    // Log current settings before update
+    console.log('Current settings before update:', settings);
+    
+    try {
+      // Update the setting (now awaiting the async function)
+      await updateSetting('pollInterval', localPollInterval);
+      
+      // Show success message
+      setSuccess('Poll interval updated successfully');
+      setTimeout(() => setSuccess(null), 3000);
+      
+      // Verify the setting was updated correctly
+      console.log('Verifying poll interval was updated correctly...');
+      console.log('Current settings after update:', settings);
+    } catch (error) {
+      console.error('Error saving poll interval:', error);
+      // Show error message
+      setSuccess('Error updating poll interval. Please try again.');
+      setTimeout(() => setSuccess(null), 3000);
+    }
   };
 
   return (
@@ -24,8 +54,8 @@ const PollingSettings = ({ pollInterval, setPollInterval, setSuccess }) => {
             min="5"
             max="120"
             step="5"
-            value={pollInterval}
-            onChange={(e) => setPollInterval(Number(e.target.value))}
+            value={localPollInterval}
+            onChange={(e) => setLocalPollInterval(Number(e.target.value))}
             className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
           />
           <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -36,7 +66,7 @@ const PollingSettings = ({ pollInterval, setPollInterval, setSuccess }) => {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-gray-900 dark:text-white">{pollInterval}s</span>
+          <span className="text-sm font-medium text-gray-900 dark:text-white">{localPollInterval}s</span>
           <button
             onClick={savePollInterval}
             className="inline-flex items-center px-3 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"

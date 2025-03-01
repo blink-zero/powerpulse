@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import { ToastProvider } from './components/ToastContainer';
 import ErrorBoundary from './components/ErrorBoundary';
+import SettingsLoader from './components/SettingsLoader';
 
 // Pages
 import Dashboard from './pages/Dashboard';
@@ -54,6 +55,7 @@ const App = () => {
   return (
     <ErrorBoundary>
       <ToastProvider>
+        <SettingsLoader />
         <Routes>
       {isFirstTimeSetup ? (
         <>

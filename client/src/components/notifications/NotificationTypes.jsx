@@ -1,4 +1,5 @@
 import React from 'react';
+import userSettingsService from '../../services/userSettingsService';
 
 /**
  * Notification Types Component
@@ -23,7 +24,22 @@ const NotificationTypes = ({
             name="batteryNotifications"
             type="checkbox"
             checked={settings.batteryNotifications !== false}
-            onChange={(e) => updateSetting('batteryNotifications', e.target.checked)}
+            onChange={async (e) => {
+              console.log(`Updating Battery notifications to: ${e.target.checked}`);
+              await updateSetting('batteryNotifications', e.target.checked);
+              
+              // Save the setting to the server immediately
+              console.log('Battery notifications checkbox changed, saving to server');
+              try {
+                await userSettingsService.updateNotificationSettings({
+                  ...settings,
+                  batteryNotifications: e.target.checked
+                });
+                console.log('Saved battery notifications setting to server');
+              } catch (error) {
+                console.error('Error saving battery notifications setting to server:', error);
+              }
+            }}
             disabled={!notificationsEnabled}
             className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded disabled:opacity-50"
           />
@@ -48,7 +64,22 @@ const NotificationTypes = ({
             name="lowBatteryNotifications"
             type="checkbox"
             checked={settings.lowBatteryNotifications !== false}
-            onChange={(e) => updateSetting('lowBatteryNotifications', e.target.checked)}
+            onChange={async (e) => {
+              console.log(`Updating Low Battery notifications to: ${e.target.checked}`);
+              await updateSetting('lowBatteryNotifications', e.target.checked);
+              
+              // Save the setting to the server immediately
+              console.log('Low battery notifications checkbox changed, saving to server');
+              try {
+                await userSettingsService.updateNotificationSettings({
+                  ...settings,
+                  lowBatteryNotifications: e.target.checked
+                });
+                console.log('Saved low battery notifications setting to server');
+              } catch (error) {
+                console.error('Error saving low battery notifications setting to server:', error);
+              }
+            }}
             disabled={!notificationsEnabled}
             className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded disabled:opacity-50"
           />

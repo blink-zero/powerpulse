@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { FiBell, FiSave, FiChevronDown, FiChevronRight } from 'react-icons/fi';
+import userSettingsService from '../../services/userSettingsService';
 import { useSettings } from '../../context/SettingsContext';
 import DiscordNotificationSettings from './DiscordNotificationSettings';
 import SlackNotificationSettings from './SlackNotificationSettings';
@@ -38,23 +38,28 @@ const NotificationSettings = ({ setError, setSuccess }) => {
   const handleSaveSettings = async () => {
     setIsSaving(true);
     try {
-      // Convert client settings format to server format
-      const serverSettings = {
-        discord_webhook_url: settings.discordWebhookUrl,
-        slack_webhook_url: settings.slackWebhookUrl,
-        notifications_enabled: settings.notifications,
-        battery_notifications: settings.batteryNotifications,
-        low_battery_notifications: settings.lowBatteryNotifications,
-        email_notifications: settings.emailNotifications,
-        email_recipients: settings.emailRecipients
-      };
-
-      // Send settings to server
-      const response = await axios.post('/api/notifications/settings', serverSettings);
+      console.log('Saving notification settings to server:', settings);
+      
+      // Use the userSettingsService to save all settings
+      const response = await userSettingsService.updateNotificationSettings(settings);
       
       setSuccess('Notification settings saved successfully');
       setTimeout(() => setSuccess(null), 3000);
-      console.log('Saved notification settings to server:', response.data);
+      console.log('Saved notification settings to server:', response);
+      
+      // Force reload settings from server to verify they were saved correctly
+      setTimeout(() => {
+        console.log('Reloading settings from server to verify...');
+        // We can't directly call loadSettingsFromServer here because it's not exposed
+        // But we can trigger a reload by calling getUserSettings
+        userSettingsService.getUserSettings()
+          .then(serverSettings => {
+            console.log('Reloaded settings from server:', serverSettings);
+          })
+          .catch(error => {
+            console.error('Error reloading settings from server:', error);
+          });
+      }, 1000);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save notification settings');
       setTimeout(() => setError(null), 5000);
@@ -73,7 +78,22 @@ const NotificationSettings = ({ setError, setSuccess }) => {
             name="notifications"
             type="checkbox"
             checked={settings.notifications}
-            onChange={(e) => updateSetting('notifications', e.target.checked)}
+            onChange={async (e) => {
+              console.log(`Updating main notifications to: ${e.target.checked}`);
+              await updateSetting('notifications', e.target.checked);
+              
+              // Save the setting to the server immediately
+              console.log('Main notifications checkbox changed, saving to server');
+              try {
+                await userSettingsService.updateNotificationSettings({
+                  ...settings,
+                  notifications: e.target.checked
+                });
+                console.log('Saved main notifications setting to server');
+              } catch (error) {
+                console.error('Error saving main notifications setting to server:', error);
+              }
+            }}
             className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded"
           />
         </div>

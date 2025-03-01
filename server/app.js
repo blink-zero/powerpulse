@@ -12,6 +12,7 @@ const nutServerRoutes = require('./routes/nutServers');
 const upsSystemRoutes = require('./routes/upsSystems');
 const userRoutes = require('./routes/users');
 const notificationRoutes = require('./routes/notifications');
+const userSettingsRoutes = require('./routes/userSettings');
 const debugRoutes = require('./routes/debug');
 
 // Initialize Express app
@@ -28,6 +29,7 @@ app.use('/api/nut/servers', nutServerRoutes);
 app.use('/api/ups/systems', upsSystemRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/user-settings', userSettingsRoutes);
 app.use('/api/debug', debugRoutes);
 
 // Legacy route for backward compatibility

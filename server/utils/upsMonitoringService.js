@@ -710,7 +710,7 @@ async function sendStatusChangeNotifications(upsSystem, newStatus, oldStatus) {
  */
 function getUsersWithNotificationsEnabled() {
   return new Promise((resolve, reject) => {
-    db.all('SELECT user_id FROM notification_settings WHERE notifications_enabled = 1', (err, users) => {
+    db.all('SELECT user_id FROM user_settings WHERE notifications_enabled = 1', (err, users) => {
       if (err) {
         console.error('Error fetching users with notifications enabled:', err);
         reject(err);
@@ -728,7 +728,7 @@ function getUsersWithNotificationsEnabled() {
  */
 function getUserNotificationSettings(userId) {
   return new Promise((resolve, reject) => {
-    db.get('SELECT * FROM notification_settings WHERE user_id = ?', [userId], (err, settings) => {
+    db.get('SELECT * FROM user_settings WHERE user_id = ?', [userId], (err, settings) => {
       if (err) {
         console.error(`Error fetching notification settings for user ${userId}:`, err);
         reject(err);

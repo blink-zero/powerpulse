@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { FiSlack } from 'react-icons/fi';
+import userSettingsService from '../../services/userSettingsService';
 
 /**
  * Slack Notification Settings Component
@@ -27,9 +27,7 @@ const SlackNotificationSettings = ({
     
     setIsTesting(true);
     try {
-      await axios.post('/api/notifications/test-slack', {
-        slack_webhook_url: settings.slackWebhookUrl
-      });
+      await userSettingsService.sendTestSlackNotification(settings.slackWebhookUrl);
       
       setSuccess('Test notification sent to Slack');
       setTimeout(() => setSuccess(null), 3000);
@@ -60,7 +58,23 @@ const SlackNotificationSettings = ({
           id="slackWebhookUrl"
           name="slackWebhookUrl"
           value={settings.slackWebhookUrl || ''}
-          onChange={(e) => updateSetting('slackWebhookUrl', e.target.value)}
+          onChange={(e) => {
+            console.log(`Updating Slack webhook URL to: ${e.target.value}`);
+            updateSetting('slackWebhookUrl', e.target.value);
+          }}
+          onBlur={async () => {
+            // Save the setting to the server when the input loses focus
+            console.log('Slack webhook URL input lost focus, saving to server');
+            try {
+              await userSettingsService.updateNotificationSettings({
+                ...settings,
+                slackWebhookUrl: settings.slackWebhookUrl
+              });
+              console.log('Saved Slack webhook URL to server');
+            } catch (error) {
+              console.error('Error saving Slack webhook URL to server:', error);
+            }
+          }}
           disabled={!notificationsEnabled}
           placeholder="https://hooks.slack.com/services/..."
           className={`mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 ${!notificationsEnabled ? 'opacity-50' : ''}`}

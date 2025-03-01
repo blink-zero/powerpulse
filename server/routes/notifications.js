@@ -9,7 +9,9 @@ const router = express.Router();
 
 // Get notification settings
 router.get('/settings', authenticateToken, (req, res) => {
-  db.get('SELECT * FROM notification_settings WHERE user_id = ?', [req.user.id], (err, settings) => {
+  console.log(`Fetching notification settings for user ${req.user.id}`);
+  
+  db.get('SELECT * FROM user_settings WHERE user_id = ?', [req.user.id], (err, settings) => {
     if (err) {
       console.error('Error fetching notification settings:', err);
       return res.status(500).json({ message: 'Database error', error: err.message });
@@ -17,6 +19,7 @@ router.get('/settings', authenticateToken, (req, res) => {
     
     // Return default settings if none exist
     if (!settings) {
+      console.log(`No settings found for user ${req.user.id}, returning defaults`);
       return res.json({
         discord_webhook_url: '',
         slack_webhook_url: '',
@@ -24,9 +27,21 @@ router.get('/settings', authenticateToken, (req, res) => {
         battery_notifications: true,
         low_battery_notifications: true,
         email_notifications: false,
-        email_recipients: ''
+        email_recipients: '',
+        poll_interval: 30 // Default poll interval in seconds
       });
     }
+    
+    console.log(`Found settings for user ${req.user.id}:`, {
+      discord_webhook_url: settings.discord_webhook_url ? 'configured' : 'not configured',
+      slack_webhook_url: settings.slack_webhook_url ? 'configured' : 'not configured',
+      notifications_enabled: settings.notifications_enabled,
+      battery_notifications: settings.battery_notifications,
+      low_battery_notifications: settings.low_battery_notifications,
+      email_notifications: settings.email_notifications,
+      email_recipients: settings.email_recipients ? 'configured' : 'not configured',
+      poll_interval: settings.poll_interval
+    });
     
     return res.json(settings);
   });
@@ -41,39 +56,69 @@ router.post('/settings', authenticateToken, (req, res) => {
     battery_notifications, 
     low_battery_notifications,
     email_notifications,
-    email_recipients
+    email_recipients,
+    poll_interval
   } = req.body;
+  
+  console.log('Received notification settings update request:', {
+    user_id: req.user.id,
+    discord_webhook_url: discord_webhook_url ? 'provided' : 'not provided',
+    slack_webhook_url: slack_webhook_url ? 'provided' : 'not provided',
+    notifications_enabled,
+    battery_notifications,
+    low_battery_notifications,
+    email_notifications,
+    email_recipients: email_recipients ? 'provided' : 'not provided',
+    poll_interval
+  });
   
   // Validate Discord webhook URL if provided
   if (discord_webhook_url && 
       !discord_webhook_url.startsWith('https://discord.com/api/webhooks/') && 
       !discord_webhook_url.startsWith('https://discordapp.com/api/webhooks/')) {
+    console.error('Invalid Discord webhook URL format');
     return res.status(400).json({ message: 'Invalid Discord webhook URL format' });
   }
   
   // Validate Slack webhook URL if provided
   if (slack_webhook_url && !slack_webhook_url.startsWith('https://hooks.slack.com/services/')) {
+    console.error('Invalid Slack webhook URL format');
     return res.status(400).json({ message: 'Invalid Slack webhook URL format' });
   }
   
   // Check if settings exist for this user
-  db.get('SELECT id FROM notification_settings WHERE user_id = ?', [req.user.id], (err, existingSettings) => {
+  db.get('SELECT id FROM user_settings WHERE user_id = ?', [req.user.id], (err, existingSettings) => {
     if (err) {
-      console.error('Error checking notification settings:', err);
+      console.error('Error checking user settings:', err);
       return res.status(500).json({ message: 'Database error', error: err.message });
     }
     
     if (existingSettings) {
+      // Log the values being saved
+      console.log('Updating existing notification settings with values:', {
+        discord_webhook_url: discord_webhook_url ? 'provided' : 'not provided',
+        slack_webhook_url: slack_webhook_url ? 'provided' : 'not provided',
+        notifications_enabled: notifications_enabled === false ? 0 : 1,
+        battery_notifications: battery_notifications === false ? 0 : 1,
+        low_battery_notifications: low_battery_notifications === false ? 0 : 1,
+        email_notifications: email_notifications === true ? 1 : 0,
+        email_recipients: email_recipients ? 'provided' : 'not provided',
+        poll_interval: poll_interval || 30,
+        user_id: req.user.id
+      });
+      
       // Update existing settings
       db.run(
-        `UPDATE notification_settings 
+        `UPDATE user_settings 
          SET discord_webhook_url = ?, 
              slack_webhook_url = ?,
              notifications_enabled = ?, 
              battery_notifications = ?, 
              low_battery_notifications = ?,
              email_notifications = ?,
-             email_recipients = ?
+             email_recipients = ?,
+             poll_interval = ?,
+             updated_at = CURRENT_TIMESTAMP
          WHERE user_id = ?`,
         [
           discord_webhook_url || '',
@@ -83,6 +128,7 @@ router.post('/settings', authenticateToken, (req, res) => {
           low_battery_notifications === false ? 0 : 1,
           email_notifications === true ? 1 : 0,
           email_recipients || '',
+          poll_interval || 30, // Default to 30 seconds if not provided
           req.user.id
         ],
         function(err) {
@@ -90,6 +136,26 @@ router.post('/settings', authenticateToken, (req, res) => {
             console.error('Error updating notification settings:', err);
             return res.status(500).json({ message: 'Error updating notification settings', error: err.message });
           }
+          
+          console.log(`Successfully updated notification settings for user ${req.user.id}`);
+          
+          // Verify the settings were saved correctly
+          db.get('SELECT * FROM user_settings WHERE user_id = ?', [req.user.id], (verifyErr, savedSettings) => {
+            if (verifyErr) {
+              console.error('Error verifying saved settings:', verifyErr);
+            } else {
+              console.log('Verified saved settings:', {
+                discord_webhook_url: savedSettings.discord_webhook_url ? 'configured' : 'not configured',
+                slack_webhook_url: savedSettings.slack_webhook_url ? 'configured' : 'not configured',
+                notifications_enabled: savedSettings.notifications_enabled,
+                battery_notifications: savedSettings.battery_notifications,
+                low_battery_notifications: savedSettings.low_battery_notifications,
+                email_notifications: savedSettings.email_notifications,
+                email_recipients: savedSettings.email_recipients ? 'configured' : 'not configured',
+                poll_interval: savedSettings.poll_interval
+              });
+            }
+          });
           
           return res.json({
             message: 'Notification settings updated',
@@ -99,16 +165,30 @@ router.post('/settings', authenticateToken, (req, res) => {
             battery_notifications: battery_notifications !== false,
             low_battery_notifications: low_battery_notifications !== false,
             email_notifications: email_notifications === true,
-            email_recipients
+            email_recipients,
+            poll_interval: poll_interval || 30
           });
         }
       );
     } else {
+      // Log the values being saved
+      console.log('Creating new notification settings with values:', {
+        discord_webhook_url: discord_webhook_url ? 'provided' : 'not provided',
+        slack_webhook_url: slack_webhook_url ? 'provided' : 'not provided',
+        notifications_enabled: notifications_enabled === false ? 0 : 1,
+        battery_notifications: battery_notifications === false ? 0 : 1,
+        low_battery_notifications: low_battery_notifications === false ? 0 : 1,
+        email_notifications: email_notifications === true ? 1 : 0,
+        email_recipients: email_recipients ? 'provided' : 'not provided',
+        poll_interval: poll_interval || 30,
+        user_id: req.user.id
+      });
+      
       // Create new settings
       db.run(
-        `INSERT INTO notification_settings 
-         (user_id, discord_webhook_url, slack_webhook_url, notifications_enabled, battery_notifications, low_battery_notifications, email_notifications, email_recipients) 
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO user_settings 
+         (user_id, discord_webhook_url, slack_webhook_url, notifications_enabled, battery_notifications, low_battery_notifications, email_notifications, email_recipients, poll_interval, inactivity_timeout, created_at, updated_at) 
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 30, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)`,
         [
           req.user.id,
           discord_webhook_url || '',
@@ -117,13 +197,34 @@ router.post('/settings', authenticateToken, (req, res) => {
           battery_notifications === false ? 0 : 1,
           low_battery_notifications === false ? 0 : 1,
           email_notifications === true ? 1 : 0,
-          email_recipients || ''
+          email_recipients || '',
+          poll_interval || 30 // Default to 30 seconds if not provided
         ],
         function(err) {
           if (err) {
             console.error('Error creating notification settings:', err);
             return res.status(500).json({ message: 'Error creating notification settings', error: err.message });
           }
+          
+          console.log(`Successfully created notification settings for user ${req.user.id}`);
+          
+          // Verify the settings were saved correctly
+          db.get('SELECT * FROM user_settings WHERE user_id = ?', [req.user.id], (verifyErr, savedSettings) => {
+            if (verifyErr) {
+              console.error('Error verifying saved settings:', verifyErr);
+            } else {
+              console.log('Verified saved settings:', {
+                discord_webhook_url: savedSettings.discord_webhook_url ? 'configured' : 'not configured',
+                slack_webhook_url: savedSettings.slack_webhook_url ? 'configured' : 'not configured',
+                notifications_enabled: savedSettings.notifications_enabled,
+                battery_notifications: savedSettings.battery_notifications,
+                low_battery_notifications: savedSettings.low_battery_notifications,
+                email_notifications: savedSettings.email_notifications,
+                email_recipients: savedSettings.email_recipients ? 'configured' : 'not configured',
+                poll_interval: savedSettings.poll_interval
+              });
+            }
+          });
           
           return res.status(201).json({
             message: 'Notification settings created',
@@ -133,7 +234,8 @@ router.post('/settings', authenticateToken, (req, res) => {
             battery_notifications: battery_notifications !== false,
             low_battery_notifications: low_battery_notifications !== false,
             email_notifications: email_notifications === true,
-            email_recipients
+            email_recipients,
+            poll_interval: poll_interval || 30
           });
         }
       );

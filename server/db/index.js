@@ -257,6 +257,19 @@ async function initializeDatabase() {
           }
         });
       }
+      
+      // Check if poll_interval column exists
+      const hasPollInterval = columns && columns.some(col => col.name === 'poll_interval');
+      if (!hasPollInterval) {
+        console.log('Adding poll_interval column to notification_settings table');
+        db.run('ALTER TABLE notification_settings ADD COLUMN poll_interval INTEGER DEFAULT 30', (err) => {
+          if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding poll_interval column:', err.message);
+          } else {
+            console.log('Successfully added poll_interval column to notification_settings table');
+          }
+        });
+      }
     });
 
     // Notification Logs
@@ -283,10 +296,143 @@ async function initializeDatabase() {
       )
     `);
 
+    // User Settings
+    db.run(`
+      CREATE TABLE IF NOT EXISTS user_settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        inactivity_timeout INTEGER DEFAULT 30,
+        discord_webhook_url TEXT DEFAULT '',
+        slack_webhook_url TEXT DEFAULT '',
+        notifications_enabled INTEGER DEFAULT 1,
+        battery_notifications INTEGER DEFAULT 1,
+        low_battery_notifications INTEGER DEFAULT 1,
+        email_notifications INTEGER DEFAULT 0,
+        email_recipients TEXT DEFAULT '',
+        poll_interval INTEGER DEFAULT 30,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      )
+    `);
+
+    // Add missing columns to user_settings table if they don't exist
+    db.run(`PRAGMA table_info(user_settings)`, (err, columns) => {
+      if (err) {
+        console.error('Error getting user_settings columns:', err.message);
+        return;
+      }
+      
+      // Check if discord_webhook_url column exists
+      const hasDiscordWebhook = columns && columns.some(col => col.name === 'discord_webhook_url');
+      if (!hasDiscordWebhook) {
+        console.log('Adding discord_webhook_url column to user_settings table');
+        db.run('ALTER TABLE user_settings ADD COLUMN discord_webhook_url TEXT DEFAULT ""', (err) => {
+          if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding discord_webhook_url column:', err.message);
+          } else {
+            console.log('Successfully added discord_webhook_url column to user_settings table');
+          }
+        });
+      }
+      
+      // Check if slack_webhook_url column exists
+      const hasSlackWebhook = columns && columns.some(col => col.name === 'slack_webhook_url');
+      if (!hasSlackWebhook) {
+        console.log('Adding slack_webhook_url column to user_settings table');
+        db.run('ALTER TABLE user_settings ADD COLUMN slack_webhook_url TEXT DEFAULT ""', (err) => {
+          if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding slack_webhook_url column:', err.message);
+          } else {
+            console.log('Successfully added slack_webhook_url column to user_settings table');
+          }
+        });
+      }
+      
+      // Check if notifications_enabled column exists
+      const hasNotificationsEnabled = columns && columns.some(col => col.name === 'notifications_enabled');
+      if (!hasNotificationsEnabled) {
+        console.log('Adding notifications_enabled column to user_settings table');
+        db.run('ALTER TABLE user_settings ADD COLUMN notifications_enabled INTEGER DEFAULT 1', (err) => {
+          if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding notifications_enabled column:', err.message);
+          } else {
+            console.log('Successfully added notifications_enabled column to user_settings table');
+          }
+        });
+      }
+      
+      // Check if battery_notifications column exists
+      const hasBatteryNotifications = columns && columns.some(col => col.name === 'battery_notifications');
+      if (!hasBatteryNotifications) {
+        console.log('Adding battery_notifications column to user_settings table');
+        db.run('ALTER TABLE user_settings ADD COLUMN battery_notifications INTEGER DEFAULT 1', (err) => {
+          if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding battery_notifications column:', err.message);
+          } else {
+            console.log('Successfully added battery_notifications column to user_settings table');
+          }
+        });
+      }
+      
+      // Check if low_battery_notifications column exists
+      const hasLowBatteryNotifications = columns && columns.some(col => col.name === 'low_battery_notifications');
+      if (!hasLowBatteryNotifications) {
+        console.log('Adding low_battery_notifications column to user_settings table');
+        db.run('ALTER TABLE user_settings ADD COLUMN low_battery_notifications INTEGER DEFAULT 1', (err) => {
+          if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding low_battery_notifications column:', err.message);
+          } else {
+            console.log('Successfully added low_battery_notifications column to user_settings table');
+          }
+        });
+      }
+      
+      // Check if email_notifications column exists
+      const hasEmailNotifications = columns && columns.some(col => col.name === 'email_notifications');
+      if (!hasEmailNotifications) {
+        console.log('Adding email_notifications column to user_settings table');
+        db.run('ALTER TABLE user_settings ADD COLUMN email_notifications INTEGER DEFAULT 0', (err) => {
+          if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding email_notifications column:', err.message);
+          } else {
+            console.log('Successfully added email_notifications column to user_settings table');
+          }
+        });
+      }
+      
+      // Check if email_recipients column exists
+      const hasEmailRecipients = columns && columns.some(col => col.name === 'email_recipients');
+      if (!hasEmailRecipients) {
+        console.log('Adding email_recipients column to user_settings table');
+        db.run('ALTER TABLE user_settings ADD COLUMN email_recipients TEXT DEFAULT ""', (err) => {
+          if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding email_recipients column:', err.message);
+          } else {
+            console.log('Successfully added email_recipients column to user_settings table');
+          }
+        });
+      }
+      
+      // Check if poll_interval column exists
+      const hasPollInterval = columns && columns.some(col => col.name === 'poll_interval');
+      if (!hasPollInterval) {
+        console.log('Adding poll_interval column to user_settings table');
+        db.run('ALTER TABLE user_settings ADD COLUMN poll_interval INTEGER DEFAULT 30', (err) => {
+          if (err && !err.message.includes('duplicate column name')) {
+            console.error('Error adding poll_interval column:', err.message);
+          } else {
+            console.log('Successfully added poll_interval column to user_settings table');
+          }
+        });
+      }
+    });
+
     // Create indexes for faster lookups
     db.run(`CREATE INDEX IF NOT EXISTS idx_notification_settings_user_id ON notification_settings(user_id)`);
     db.run(`CREATE INDEX IF NOT EXISTS idx_notification_logs_user_id ON notification_logs(user_id)`);
     db.run(`CREATE INDEX IF NOT EXISTS idx_notification_logs_ups_id ON notification_logs(ups_id)`);
+    db.run(`CREATE INDEX IF NOT EXISTS idx_user_settings_user_id ON user_settings(user_id)`);
   });
 }
 

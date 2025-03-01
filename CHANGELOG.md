@@ -5,6 +5,41 @@ All notable changes to the PowerPulse project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.9.0] - 2025-03-01
+
+### Changed
+- Consolidated settings tables:
+  - Merged notification settings into the user_settings table
+  - Created a view for backward compatibility
+  - Improved settings management with a unified approach
+  - Enhanced data consistency and reduced database complexity
+  - Simplified API endpoints for settings management
+- Enhanced notification system:
+  - Improved settings loading and saving
+  - Added better error handling and validation
+  - Enhanced settings synchronization between client and server
+  - Added detailed logging for troubleshooting
+  - Improved verification of saved settings
+
+### Added
+- New migration system for settings consolidation:
+  - Added SQL migration script for consolidating tables
+  - Created JavaScript migration utility for data transfer
+  - Added shell script for easy migration execution
+  - Implemented backward compatibility layer
+- New userSettings API endpoint:
+  - Added comprehensive validation for all settings
+  - Improved error handling and reporting
+  - Enhanced security with proper input validation
+  - Added detailed logging for troubleshooting
+
+### Technical
+- Improved code organization:
+  - Created dedicated userSettingsService for client-side settings management
+  - Enhanced SettingsContext with better state management
+  - Added SettingsLoader component for improved UX during settings loading
+  - Implemented proper settings synchronization between components
+
 ## [1.8.3] - 2025-03-01
 
 ### Added

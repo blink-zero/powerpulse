@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { FiMail } from 'react-icons/fi';
+import userSettingsService from '../../services/userSettingsService';
 
 /**
  * Email Notification Settings Component
@@ -27,9 +27,7 @@ const EmailNotificationSettings = ({
     
     setIsTesting(true);
     try {
-      await axios.post('/api/notifications/test-email', {
-        email_recipients: settings.emailRecipients
-      });
+      await userSettingsService.sendTestEmailNotification(settings.emailRecipients);
       
       setSuccess('Test notification sent to email recipients');
       setTimeout(() => setSuccess(null), 3000);
@@ -55,7 +53,22 @@ const EmailNotificationSettings = ({
             name="emailNotifications"
             type="checkbox"
             checked={settings.emailNotifications}
-            onChange={(e) => updateSetting('emailNotifications', e.target.checked)}
+            onChange={async (e) => {
+              console.log(`Updating Email notifications to: ${e.target.checked}`);
+              await updateSetting('emailNotifications', e.target.checked);
+              
+              // Save the setting to the server immediately
+              console.log('Email notifications checkbox changed, saving to server');
+              try {
+                await userSettingsService.updateNotificationSettings({
+                  ...settings,
+                  emailNotifications: e.target.checked
+                });
+                console.log('Saved email notifications setting to server');
+              } catch (error) {
+                console.error('Error saving email notifications setting to server:', error);
+              }
+            }}
             disabled={!notificationsEnabled}
             className="focus:ring-primary-500 h-4 w-4 text-primary-600 border-gray-300 rounded disabled:opacity-50"
           />
@@ -85,7 +98,23 @@ const EmailNotificationSettings = ({
           id="emailRecipients"
           name="emailRecipients"
           value={settings.emailRecipients || ''}
-          onChange={(e) => updateSetting('emailRecipients', e.target.value)}
+          onChange={(e) => {
+            console.log(`Updating Email recipients to: ${e.target.value}`);
+            updateSetting('emailRecipients', e.target.value);
+          }}
+          onBlur={async () => {
+            // Save the setting to the server when the input loses focus
+            console.log('Email recipients input lost focus, saving to server');
+            try {
+              await userSettingsService.updateNotificationSettings({
+                ...settings,
+                emailRecipients: settings.emailRecipients
+              });
+              console.log('Saved email recipients to server');
+            } catch (error) {
+              console.error('Error saving email recipients to server:', error);
+            }
+          }}
           disabled={!notificationsEnabled || !settings.emailNotifications}
           placeholder="email1@example.com, email2@example.com"
           className={`mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 ${!notificationsEnabled || !settings.emailNotifications ? 'opacity-50' : ''}`}

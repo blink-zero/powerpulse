@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { FiBell } from 'react-icons/fi';
+import userSettingsService from '../../services/userSettingsService';
 
 /**
  * Discord Notification Settings Component
@@ -27,9 +27,7 @@ const DiscordNotificationSettings = ({
     
     setIsTesting(true);
     try {
-      await axios.post('/api/notifications/test', {
-        discord_webhook_url: settings.discordWebhookUrl
-      });
+      await userSettingsService.sendTestDiscordNotification(settings.discordWebhookUrl);
       
       setSuccess('Test notification sent to Discord');
       setTimeout(() => setSuccess(null), 3000);
@@ -60,7 +58,23 @@ const DiscordNotificationSettings = ({
           id="discordWebhookUrl"
           name="discordWebhookUrl"
           value={settings.discordWebhookUrl || ''}
-          onChange={(e) => updateSetting('discordWebhookUrl', e.target.value)}
+          onChange={(e) => {
+            console.log(`Updating Discord webhook URL to: ${e.target.value}`);
+            updateSetting('discordWebhookUrl', e.target.value);
+          }}
+          onBlur={async () => {
+            // Save the setting to the server when the input loses focus
+            console.log('Discord webhook URL input lost focus, saving to server');
+            try {
+              await userSettingsService.updateNotificationSettings({
+                ...settings,
+                discordWebhookUrl: settings.discordWebhookUrl
+              });
+              console.log('Saved Discord webhook URL to server');
+            } catch (error) {
+              console.error('Error saving Discord webhook URL to server:', error);
+            }
+          }}
           disabled={!notificationsEnabled}
           placeholder="https://discord.com/api/webhooks/..."
           className={`mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-primary-500 focus:border-primary-500 ${!notificationsEnabled ? 'opacity-50' : ''}`}
