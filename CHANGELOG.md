@@ -24,6 +24,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added visual indicators showing whether Email notifications are configured
   - Improved user experience with clear configuration status
 
+### Fixed
+- Fixed automatic logout not working correctly on mobile devices:
+  - Enhanced `useInactivityTimer` hook with additional mobile-specific events
+  - Added support for touchmove, touchend, and touchcancel events
+  - Implemented special handling for visibility changes to detect background/foreground app transitions
+  - Added localStorage-based timestamp tracking for more reliable inactivity detection
+  - Improved logging for better debugging of activity detection
+  - Updated tests to cover new mobile-specific functionality
+
 ### Improved
 - Enhanced documentation organization:
   - Moved upgrade section to a more logical location after installation

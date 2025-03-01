@@ -5,7 +5,7 @@ import appConfig from '../config/appConfig';
 // This is a simple example test to demonstrate testing setup
 describe('Application Configuration', () => {
   it('has the correct version number', () => {
-    expect(appConfig.version).toBe('1.8.2');
+    expect(appConfig.version).toBe('1.8.3');
   });
 
   it('has the correct app name', () => {

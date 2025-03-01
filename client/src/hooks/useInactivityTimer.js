@@ -37,17 +37,63 @@ const useInactivityTimer = ({ timeout, onTimeout, isActive = true }) => {
   useEffect(() => {
     if (isActive) {
       // Events that indicate user activity
-      const activityEvents = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+      // Include additional touch events for better mobile support
+      const activityEvents = [
+        // Desktop events
+        'mousedown', 'mousemove', 'keypress', 'scroll', 
+        // Mobile events
+        'touchstart', 'touchmove', 'touchend', 'touchcancel',
+        // Additional events that might help with mobile devices
+        'focus', 'blur'
+      ];
       
       // Event handler to reset the inactivity timer
-      const handleUserActivity = () => {
+      const handleUserActivity = (event) => {
+        console.log(`Activity detected: ${event.type} on ${navigator.userAgent}`);
+        // Update last activity timestamp
+        localStorage.setItem('lastActivityTimestamp', Date.now().toString());
         resetTimer();
       };
+      
+      // Special handler for visibility change
+      const handleVisibilityChange = () => {
+        const isVisible = document.visibilityState === 'visible';
+        console.log(`Visibility changed: ${document.visibilityState}`);
+        
+        if (isVisible) {
+          // When page becomes visible again, check if we should logout
+          const lastActivity = localStorage.getItem('lastActivityTimestamp');
+          const now = Date.now();
+          
+          if (lastActivity) {
+            const inactiveTime = (now - parseInt(lastActivity)) / (60 * 1000); // in minutes
+            console.log(`Inactive time: ${inactiveTime.toFixed(2)} minutes`);
+            
+            if (inactiveTime >= timeout) {
+              console.log(`Inactive time (${inactiveTime.toFixed(2)} min) exceeds timeout (${timeout} min), logging out`);
+              onTimeout();
+              return;
+            }
+          }
+          
+          // If we didn't logout, reset the timer
+          resetTimer();
+        }
+        
+        // Update last activity timestamp
+        localStorage.setItem('lastActivityTimestamp', Date.now().toString());
+      };
+      
+      // Initialize last activity timestamp
+      localStorage.setItem('lastActivityTimestamp', Date.now().toString());
       
       // Add event listeners
       activityEvents.forEach(event => {
         window.addEventListener(event, handleUserActivity);
       });
+      
+      // Add visibility change listener separately
+      window.addEventListener('visibilitychange', handleVisibilityChange);
       
       // Initialize the timer
       resetTimer();
@@ -57,6 +103,8 @@ const useInactivityTimer = ({ timeout, onTimeout, isActive = true }) => {
         activityEvents.forEach(event => {
           window.removeEventListener(event, handleUserActivity);
         });
+        
+        window.removeEventListener('visibilitychange', handleVisibilityChange);
         
         // Clear any existing timer
         if (timerRef.current) {
