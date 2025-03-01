@@ -1,11 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import appConfig from '../config/appConfig';
+import packageJson from '../../package.json';
 
 // This is a simple example test to demonstrate testing setup
 describe('Application Configuration', () => {
   it('has the correct version number', () => {
-    expect(appConfig.version).toBe('1.8.3');
+    expect(appConfig.version).toBe(packageJson.version);
   });
 
   it('has the correct app name', () => {

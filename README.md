@@ -1,7 +1,7 @@
 # PowerPulse
 
 ![PowerPulse Logo](https://img.shields.io/badge/PowerPulse-UPS%20Monitoring-blue)
-![Version](https://img.shields.io/badge/version-1.8.3-green)
+![Version](https://img.shields.io/badge/version-1.9.0-green)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 PowerPulse is a modern UPS (Uninterruptible Power Supply) monitoring dashboard integrated with Network UPS Tools (NUT). It provides a clean, responsive interface for monitoring and managing your UPS systems.
@@ -138,12 +138,12 @@ You can also run PowerPulse directly from Docker Hub without cloning the reposit
 
 3. Download the Docker Compose file:
    ```
-   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.8.3/docker-compose.dockerhub.yml -O docker-compose.yml
+   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.9.0/docker-compose.dockerhub.yml -O docker-compose.yml
    ```
 
 4. Create an environment file:
    ```
-   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.8.3/.env.example -O .env
+   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.9.0/.env.example -O .env
    # Edit .env with your configuration
    ```
 
@@ -206,8 +206,8 @@ You can also run PowerPulse directly from Docker Hub without cloning the reposit
    # image: blinkzero/powerpulse-server:1.8.3
    # image: blinkzero/powerpulse-client:1.8.3
    # To:
-   # image: blinkzero/powerpulse-server:1.8.3 (or whatever the latest version is)
-   # image: blinkzero/powerpulse-client:1.8.3 (or whatever the latest version is)
+   # image: blinkzero/powerpulse-server:1.9.0
+   # image: blinkzero/powerpulse-client:1.9.0
    ```
 
    Alternatively, download the latest docker-compose file (replace X.Y.Z with the latest version):

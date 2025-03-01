@@ -1,6 +1,6 @@
 {
   "name": "powerpulse",
-  "version": "1.8.3",
+  "version": "1.9.0",
   "description": "Modern UPS monitoring dashboard integrated with Network UPS Tools (NUT)",
   "main": "index.js",
   "scripts": {
