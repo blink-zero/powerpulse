@@ -23,11 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added visual indicators showing whether Slack webhook is configured
   - Added visual indicators showing whether Email notifications are configured
   - Improved user experience with clear configuration status
-- Server-side storage for user settings:
-  - Added user_settings table to store user-specific settings
-  - Created API endpoints for retrieving and updating user settings
-  - Implemented server-side storage for session timeout settings
-  - Ensured settings persistence across different browsers and devices
 
 ### Fixed
 - Fixed automatic logout not working correctly on mobile devices:
@@ -37,12 +32,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added localStorage-based timestamp tracking for more reliable inactivity detection
   - Improved logging for better debugging of activity detection
   - Updated tests to cover new mobile-specific functionality
-- Fixed settings not being saved properly across different browsers and devices:
-  - Implemented server-side storage for session timeout settings
-  - Improved synchronization logic for notification settings
-  - Added explicit save functionality to ensure settings are properly persisted
-  - Prioritized server settings over localStorage settings
-  - Enhanced error handling for failed server requests
 
 ### Improved
 - Enhanced documentation organization:
@@ -53,10 +42,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added dedicated tab for application information
   - Improved navigation with clear tab labels and icons
   - Added status badges to notification settings for better visibility
-- Improved settings synchronization:
-  - Better handling of settings loading from server
-  - More reliable saving of settings to server
-  - Clearer feedback when settings are saved successfully
 
 ## [1.8.2] - 2025-02-28
 

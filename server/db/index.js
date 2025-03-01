@@ -283,25 +283,10 @@ async function initializeDatabase() {
       )
     `);
 
-    // User Settings table for storing user-specific settings
-    db.run(`
-      CREATE TABLE IF NOT EXISTS user_settings (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id INTEGER NOT NULL,
-        inactivity_timeout INTEGER DEFAULT 30,
-        poll_interval INTEGER DEFAULT 30,
-        dark_mode INTEGER DEFAULT 0,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
-      )
-    `);
-    
     // Create indexes for faster lookups
     db.run(`CREATE INDEX IF NOT EXISTS idx_notification_settings_user_id ON notification_settings(user_id)`);
     db.run(`CREATE INDEX IF NOT EXISTS idx_notification_logs_user_id ON notification_logs(user_id)`);
     db.run(`CREATE INDEX IF NOT EXISTS idx_notification_logs_ups_id ON notification_logs(ups_id)`);
-    db.run(`CREATE INDEX IF NOT EXISTS idx_user_settings_user_id ON user_settings(user_id)`);
   });
 }
 

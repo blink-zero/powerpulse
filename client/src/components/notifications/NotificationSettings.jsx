@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios';
 import { FiBell, FiSave, FiChevronDown, FiChevronRight } from 'react-icons/fi';
 import { useSettings } from '../../context/SettingsContext';
 import DiscordNotificationSettings from './DiscordNotificationSettings';
@@ -15,7 +16,7 @@ import NotificationHistory from './NotificationHistory';
  * sections to reduce visual clutter and improve user experience.
  */
 const NotificationSettings = ({ setError, setSuccess }) => {
-  const { settings, updateSetting, saveNotificationSettings } = useSettings();
+  const { settings, updateSetting } = useSettings();
   const [isSaving, setIsSaving] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     discord: false,
@@ -37,14 +38,27 @@ const NotificationSettings = ({ setError, setSuccess }) => {
   const handleSaveSettings = async () => {
     setIsSaving(true);
     try {
-      // Use the context function to save settings to server
-      await saveNotificationSettings();
+      // Convert client settings format to server format
+      const serverSettings = {
+        discord_webhook_url: settings.discordWebhookUrl,
+        slack_webhook_url: settings.slackWebhookUrl,
+        notifications_enabled: settings.notifications,
+        battery_notifications: settings.batteryNotifications,
+        low_battery_notifications: settings.lowBatteryNotifications,
+        email_notifications: settings.emailNotifications,
+        email_recipients: settings.emailRecipients
+      };
+
+      // Send settings to server
+      const response = await axios.post('/api/notifications/settings', serverSettings);
       
       setSuccess('Notification settings saved successfully');
       setTimeout(() => setSuccess(null), 3000);
+      console.log('Saved notification settings to server:', response.data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to save notification settings');
       setTimeout(() => setError(null), 5000);
+      console.error('Error saving settings to server:', err);
     } finally {
       setIsSaving(false);
     }

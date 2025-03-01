@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import axios from 'axios';
 import { useAuth } from './AuthContext';
-import { notificationsAPI, userSettingsAPI } from '../services/api';
 
 // Default settings
 const defaultSettings = {
@@ -32,13 +32,12 @@ export const SettingsProvider = ({ children }) => {
   useEffect(() => {
     if (isAuthenticated) {
       setLoading(true);
-      
-      // Load notification settings
-      const loadNotificationSettings = notificationsAPI.getSettings()
+      axios.get('/api/notifications/settings')
         .then(response => {
           // Convert server settings format to client format
           const serverSettings = response.data;
-          return {
+          const clientSettings = {
+            ...settings,
             notifications: serverSettings.notifications_enabled === 1,
             batteryNotifications: serverSettings.battery_notifications === 1,
             lowBatteryNotifications: serverSettings.low_battery_notifications === 1,
@@ -47,43 +46,11 @@ export const SettingsProvider = ({ children }) => {
             emailNotifications: serverSettings.email_notifications === 1,
             emailRecipients: serverSettings.email_recipients || ''
           };
-        })
-        .catch(error => {
-          console.error('Error loading notification settings from server:', error);
-          return {};
-        });
-      
-      // Load user settings
-      const loadUserSettings = userSettingsAPI.getSettings()
-        .then(response => {
-          const userSettings = response.data;
-          return {
-            pollInterval: userSettings.poll_interval || 30,
-            darkMode: userSettings.dark_mode === 1
-          };
-        })
-        .catch(error => {
-          console.error('Error loading user settings from server:', error);
-          return {};
-        });
-      
-      // Wait for both settings to load
-      Promise.all([loadNotificationSettings, loadUserSettings])
-        .then(([notificationSettings, userSettings]) => {
-          // Create new settings object prioritizing server settings
-          const clientSettings = {
-            ...defaultSettings, // Start with defaults
-            ...userSettings, // Apply user settings from server
-            ...notificationSettings // Apply notification settings from server
-          };
-          
-          // Update settings state with server values
           setSettings(clientSettings);
-          
-          // Also update localStorage with these server-synced settings
-          localStorage.setItem('powerpulse_settings', JSON.stringify(clientSettings));
-          
-          console.log('Loaded settings from server:', clientSettings);
+          console.log('Loaded notification settings from server:', clientSettings);
+        })
+        .catch(error => {
+          console.error('Error loading settings from server:', error);
         })
         .finally(() => {
           setLoading(false);
@@ -96,26 +63,9 @@ export const SettingsProvider = ({ children }) => {
     localStorage.setItem('powerpulse_settings', JSON.stringify(settings));
   }, [settings]);
 
-  // Update a single setting (only updates local state, not server)
-  const updateSetting = (key, value) => {
-    setSettings(prevSettings => {
-      const newSettings = {
-        ...prevSettings,
-        [key]: value
-      };
-      
-      // Update localStorage
-      localStorage.setItem('powerpulse_settings', JSON.stringify(newSettings));
-      
-      return newSettings;
-    });
-  };
-  
-  // Save notification settings to server
-  const saveNotificationSettings = async () => {
-    if (!isAuthenticated) return;
-    
-    try {
+  // Save notification settings to server when they change
+  useEffect(() => {
+    if (isAuthenticated && !loading) {
       // Convert client settings format to server format
       const serverSettings = {
         discord_webhook_url: settings.discordWebhookUrl,
@@ -127,52 +77,32 @@ export const SettingsProvider = ({ children }) => {
         email_recipients: settings.emailRecipients
       };
 
-      const response = await notificationsAPI.updateSettings(serverSettings);
-      console.log('Saved notification settings to server:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Error saving notification settings to server:', error);
-      throw error;
+      axios.post('/api/notifications/settings', serverSettings)
+        .then(response => {
+          console.log('Saved notification settings to server:', response.data);
+        })
+        .catch(error => {
+          console.error('Error saving settings to server:', error);
+        });
     }
-  };
-  
-  // Save user settings to server
-  const saveUserSettings = async () => {
-    if (!isAuthenticated) return;
-    
-    try {
-      const userSettings = {
-        poll_interval: settings.pollInterval,
-        dark_mode: settings.darkMode ? 1 : 0
-      };
-      
-      const response = await userSettingsAPI.updateSettings(userSettings);
-      console.log('Saved user settings to server:', response.data);
-      return response.data;
-    } catch (error) {
-      console.error('Error saving user settings to server:', error);
-      throw error;
-    }
-  };
-  
-  // Save all settings to server
-  const saveAllSettings = async () => {
-    if (!isAuthenticated) return;
-    
-    try {
-      const [notificationResult, userResult] = await Promise.all([
-        saveNotificationSettings(),
-        saveUserSettings()
-      ]);
-      
-      return {
-        notification: notificationResult,
-        user: userResult
-      };
-    } catch (error) {
-      console.error('Error saving all settings to server:', error);
-      throw error;
-    }
+  }, [
+    isAuthenticated,
+    loading,
+    settings.notifications,
+    settings.batteryNotifications,
+    settings.lowBatteryNotifications,
+    settings.discordWebhookUrl,
+    settings.slackWebhookUrl,
+    settings.emailNotifications,
+    settings.emailRecipients
+  ]);
+
+  // Update a single setting
+  const updateSetting = (key, value) => {
+    setSettings(prevSettings => ({
+      ...prevSettings,
+      [key]: value
+    }));
   };
 
   // Reset settings to defaults
@@ -189,11 +119,7 @@ export const SettingsProvider = ({ children }) => {
     settings,
     updateSetting,
     resetSettings,
-    getPollIntervalMs,
-    saveNotificationSettings,
-    saveUserSettings,
-    saveAllSettings,
-    loading
+    getPollIntervalMs
   };
 
   return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
