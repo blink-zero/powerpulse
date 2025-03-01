@@ -13,12 +13,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added database backup and restore procedures
   - Added troubleshooting steps for common upgrade issues
   - Added guidance on checking for updates
+- Application Information section in Settings:
+  - Added new "About" tab in the Settings page
+  - Created ApplicationInfo component to display application details
+  - Included version, repository link, license, and copyright information
+  - Integrated with the centralized configuration system
 
 ### Improved
 - Enhanced documentation organization:
   - Moved upgrade section to a more logical location after installation
   - Improved README structure for better user experience
   - Added more detailed explanations for upgrade procedures
+- Enhanced Settings page organization:
+  - Added dedicated tab for application information
+  - Improved navigation with clear tab labels and icons
 
 ## [1.8.2] - 2025-02-28
 

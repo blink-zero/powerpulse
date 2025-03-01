@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FiSettings, FiAlertCircle, FiCheck, FiBell, FiUser, FiUsers, FiSliders } from 'react-icons/fi';
+import { FiSettings, FiAlertCircle, FiCheck, FiBell, FiUser, FiUsers, FiSliders, FiInfo } from 'react-icons/fi';
 import { useAuth } from '../context/AuthContext';
 import { useSettings } from '../context/SettingsContext';
 import NotificationSettings from '../components/notifications/NotificationSettings';
@@ -7,6 +7,7 @@ import PollingSettings from '../components/settings/PollingSettings';
 import AccountSettings from '../components/settings/AccountSettings';
 import UserManagement from '../components/settings/UserManagement';
 import ResetSettings from '../components/settings/ResetSettings';
+import ApplicationInfo from '../components/settings/ApplicationInfo';
 
 /**
  * Settings Page Component
@@ -75,6 +76,17 @@ const SettingsPage = () => {
             General
           </button>
           <button
+            onClick={() => setActiveTab('about')}
+            className={`${
+              activeTab === 'about'
+                ? 'border-primary-500 text-primary-600 dark:text-primary-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+            } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center`}
+          >
+            <FiInfo className="mr-2 h-4 w-4" />
+            About
+          </button>
+          <button
             onClick={() => setActiveTab('notifications')}
             className={`${
               activeTab === 'notifications'
@@ -126,6 +138,13 @@ const SettingsPage = () => {
               setPollInterval={setPollInterval} 
               setSuccess={setSuccess} 
             />
+          </div>
+        )}
+        
+        {activeTab === 'about' && (
+          <div className="px-4 py-5 sm:p-6 space-y-6">
+            <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">Application Information</h3>
+            <ApplicationInfo />
           </div>
         )}
         
