@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 import axios from 'axios';
 import { FiBattery, FiAlertCircle, FiClock, FiThermometer, FiPercent, FiZap, FiActivity, FiRefreshCw, FiCalendar, FiFilter } from 'react-icons/fi';
 import { useSettings } from '../context/SettingsContext';
@@ -30,11 +30,45 @@ ChartJS.register(
 
 const Dashboard = () => {
   const { getPollIntervalMs, settings } = useSettings();
-  const [upsSystems, setUpsSystems] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedUps, setSelectedUps] = useState(null);
+  // Define reducer for dashboard state
+  const initialState = {
+    upsSystems: [],
+    loading: true,
+    error: null,
+    selectedUpsId: null,
+    lastUpdated: new Date(),
+    forceUpdate: 0 // Used to force re-renders
+  };
+
+  const dashboardReducer = (state, action) => {
+    switch (action.type) {
+      case 'SET_UPS_SYSTEMS':
+        return {
+          ...state,
+          upsSystems: action.payload,
+          lastUpdated: new Date(),
+          forceUpdate: state.forceUpdate + 1 // Increment to force re-render
+        };
+      case 'SET_LOADING':
+        return { ...state, loading: action.payload };
+      case 'SET_ERROR':
+        return { ...state, error: action.payload };
+      case 'SET_SELECTED_UPS_ID':
+        return { ...state, selectedUpsId: action.payload };
+      default:
+        return state;
+    }
+  };
+
+  // Use reducer instead of multiple useState calls
+  const [state, dispatch] = useReducer(dashboardReducer, initialState);
+  const { upsSystems, loading, error, selectedUpsId, lastUpdated, forceUpdate } = state;
+
+  // Get the selected UPS from the current state
+  const selectedUps = upsSystems.find(ups => ups.id === selectedUpsId) || null;
+  
   const [timeFilter, setTimeFilter] = useState(3); // Default to 3 days
+  
   const { 
     batteryHistory, 
     loading: historyLoading, 
@@ -43,37 +77,45 @@ const Dashboard = () => {
     refreshData: refreshBatteryHistory,
     currentTimeFilter
   } = useBatteryHistory(selectedUps?.id, timeFilter);
-  const [lastUpdated, setLastUpdated] = useState(new Date());
 
+  // Effect for fetching UPS systems data
   useEffect(() => {
     const fetchUpsSystems = async () => {
       try {
-        setLoading(true);
+        dispatch({ type: 'SET_LOADING', payload: true });
         const response = await axios.get('/api/ups/systems');
-        setUpsSystems(response.data);
-        setLastUpdated(new Date());
+        const data = response.data;
         
-        if (response.data.length > 0 && !selectedUps) {
-          setSelectedUps(response.data[0]);
+        // Set initial selection if needed
+        if (data.length > 0 && !selectedUpsId) {
+          dispatch({ type: 'SET_SELECTED_UPS_ID', payload: data[0].id });
         }
+        
+        dispatch({ type: 'SET_UPS_SYSTEMS', payload: data });
+        
+        // Log for debugging
+        console.log('UPS systems data fetched:', data);
       } catch (err) {
-        setError('Failed to fetch UPS systems. Please check your connection to the NUT server.');
+        dispatch({ 
+          type: 'SET_ERROR', 
+          payload: 'Failed to fetch UPS systems. Please check your connection to the NUT server.' 
+        });
         console.error('Error fetching UPS systems:', err);
       } finally {
-        setLoading(false);
+        dispatch({ type: 'SET_LOADING', payload: false });
       }
     };
 
     fetchUpsSystems();
     
-    // Set up polling for real-time updates using the configured poll interval
+    // Set up polling for real-time updates
     const interval = setInterval(fetchUpsSystems, getPollIntervalMs());
     
     return () => clearInterval(interval);
-  }, [getPollIntervalMs, selectedUps]);
+  }, [getPollIntervalMs, selectedUpsId]); // Added selectedUpsId back to ensure proper initial selection
 
   const handleUpsSelect = (ups) => {
-    setSelectedUps(ups);
+    dispatch({ type: 'SET_SELECTED_UPS_ID', payload: ups.id });
   };
 
   const getStatusColor = (status) => {
@@ -226,7 +268,7 @@ const Dashboard = () => {
         {/* Selected UPS Details */}
         <div className="md:col-span-2">
           {selectedUps && (
-            <div className="space-y-6">
+            <div className="space-y-6" key={`${selectedUps.id}-${selectedUps.batteryCharge}-${forceUpdate}`}>
               <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
                 <div className="px-4 py-5 sm:px-6 border-b dark:border-gray-700 flex justify-between items-center">
                   <div>

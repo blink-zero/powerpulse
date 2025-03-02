@@ -5,7 +5,7 @@ All notable changes to the PowerPulse project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [1.9.1] - 2025-03-01
+## [1.9.1] - 2025-03-02
 
 ### Added
 - Documented previously undocumented API endpoints:
@@ -21,6 +21,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added data sampling for multi-day views to get a more representative sample across the full time range
   - Increased record limit for multi-day views to provide better data coverage
   - Enhanced logging for better troubleshooting of time filter issues
+- Fixed selected UPS card not updating in real-time:
+  - Implemented reducer pattern in Dashboard component for better state management
+  - Added forceUpdate counter to trigger re-renders when UPS data changes
+  - Ensured both small UPS cards and detailed UPS view stay in sync
+  - Used key prop with dynamic values to force component re-rendering
+  - Improved data synchronization between UPS list and detailed view
 
 ### Improved
 - Simplified battery history implementation:
