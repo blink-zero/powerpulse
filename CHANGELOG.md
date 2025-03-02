@@ -21,6 +21,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added data sampling for multi-day views to get a more representative sample across the full time range
   - Increased record limit for multi-day views to provide better data coverage
   - Enhanced logging for better troubleshooting of time filter issues
+- Fixed notification history timestamps to match the timezone shown on the dashboard:
+  - Updated date formatting in NotificationHistory component to use consistent formatting options
+  - Ensured consistent date display format across the application
 
 ### Improved
 - Simplified battery history implementation:
