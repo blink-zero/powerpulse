@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useReducer } from 'react';
 import axios from 'axios';
-import { FiBattery, FiAlertCircle, FiClock, FiThermometer, FiPercent, FiZap, FiActivity, FiRefreshCw, FiCalendar, FiFilter } from 'react-icons/fi';
+import { FiBattery, FiAlertCircle, FiClock, FiThermometer, FiPercent, FiZap, FiActivity, FiRefreshCw, FiCalendar, FiFilter, FiGrid, FiList } from 'react-icons/fi';
 import { useSettings } from '../context/SettingsContext';
 import { useBatteryHistory } from '../hooks/useBatteryHistory';
 import { Line } from 'react-chartjs-2';
@@ -37,7 +37,8 @@ const Dashboard = () => {
     error: null,
     selectedUpsId: null,
     lastUpdated: new Date(),
-    forceUpdate: 0 // Used to force re-renders
+    forceUpdate: 0, // Used to force re-renders
+    kioskUpsIds: [] // Track which UPS systems to show in kiosk mode
   };
 
   const dashboardReducer = (state, action) => {
@@ -55,6 +56,33 @@ const Dashboard = () => {
         return { ...state, error: action.payload };
       case 'SET_SELECTED_UPS_ID':
         return { ...state, selectedUpsId: action.payload };
+      case 'TOGGLE_KIOSK_UPS':
+        const upsId = action.payload;
+        const kioskUpsIds = [...state.kioskUpsIds];
+        
+        if (kioskUpsIds.includes(upsId)) {
+          // Remove UPS from kiosk selection
+          return {
+            ...state,
+            kioskUpsIds: kioskUpsIds.filter(id => id !== upsId)
+          };
+        } else {
+          // Add UPS to kiosk selection
+          return {
+            ...state,
+            kioskUpsIds: [...kioskUpsIds, upsId]
+          };
+        }
+      case 'SELECT_ALL_KIOSK_UPS':
+        return {
+          ...state,
+          kioskUpsIds: state.upsSystems.map(ups => ups.id)
+        };
+      case 'CLEAR_KIOSK_UPS':
+        return {
+          ...state,
+          kioskUpsIds: []
+        };
       default:
         return state;
     }
@@ -62,7 +90,7 @@ const Dashboard = () => {
 
   // Use reducer instead of multiple useState calls
   const [state, dispatch] = useReducer(dashboardReducer, initialState);
-  const { upsSystems, loading, error, selectedUpsId, lastUpdated, forceUpdate } = state;
+  const { upsSystems, loading, error, selectedUpsId, lastUpdated, forceUpdate, kioskUpsIds } = state;
 
   // Get the selected UPS from the current state
   const selectedUps = upsSystems.find(ups => ups.id === selectedUpsId) || null;
@@ -206,7 +234,29 @@ const Dashboard = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">UPS Monitoring Dashboard</h1>
+        <div className="flex items-center">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">UPS Monitoring Dashboard</h1>
+          <div className="ml-4 flex space-x-2">
+            <a 
+              href={`/kiosk${kioskUpsIds.length > 0 ? `?ups=${kioskUpsIds.join(',')}` : ''}`}
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            >
+              <FiList className="mr-1 h-4 w-4" />
+              Kiosk Mode
+            </a>
+            <a 
+              href={`/kiosk?multi=true${kioskUpsIds.length > 0 ? `&ups=${kioskUpsIds.join(',')}` : ''}`}
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center px-3 py-1 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500"
+            >
+              <FiGrid className="mr-1 h-4 w-4" />
+              Multi-View
+            </a>
+          </div>
+        </div>
         <div className="text-sm text-gray-500 dark:text-gray-400 flex items-center">
           <FiClock className="mr-1" />
           Last updated: {lastUpdated.toLocaleTimeString()}
@@ -221,12 +271,41 @@ const Dashboard = () => {
         <div className="md:col-span-1">
           <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
             <div className="px-4 py-5 sm:px-6 border-b dark:border-gray-700">
-              <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">UPS Systems</h3>
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">UPS Systems</h3>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => dispatch({ type: 'SELECT_ALL_KIOSK_UPS' })}
+                    className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                  >
+                    Select All
+                  </button>
+                  <span className="text-gray-300 dark:text-gray-600">|</span>
+                  <button
+                    onClick={() => dispatch({ type: 'CLEAR_KIOSK_UPS' })}
+                    className="text-xs text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Select UPS systems to show in kiosk mode
+              </p>
             </div>
             <ul className="divide-y divide-gray-200 dark:divide-gray-700">
               {upsSystems.map((ups, index) => (
                 <li key={ups.id}>
                   <div className="flex items-center">
+                    <div className="flex-shrink-0 pl-4 pr-2">
+                      <input
+                        type="checkbox"
+                        checked={kioskUpsIds.includes(ups.id)}
+                        onChange={() => dispatch({ type: 'TOGGLE_KIOSK_UPS', payload: ups.id })}
+                        className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300 rounded"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                    </div>
                     <button
                       onClick={() => handleUpsSelect(ups)}
                       className={`w-full px-4 py-4 flex items-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-150 ${

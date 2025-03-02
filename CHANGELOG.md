@@ -5,6 +5,21 @@ All notable changes to the PowerPulse project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.0] - 2025-03-02
+
+### Added
+- Kiosk Mode for small screens and display panels:
+  - Created dedicated full-screen view optimized for small displays
+  - Implemented modern, clean UI with dark theme for better visibility
+  - Added auto-rotation between multiple UPS systems
+  - Designed responsive layout that works well on various screen sizes
+  - Made accessible without authentication for public displays
+  - Added multi-view mode to display all UPS systems on a single screen
+  - Implemented ability to select specific UPS systems to show in kiosk mode
+  - Added toggle button to switch between single and multi-view modes
+  - Created compact UPS cards for multi-view display
+  - Added URL parameters to control view mode and UPS selection
+
 ## [1.9.1] - 2025-03-02
 
 ### Added

@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard';
 import UPSSystemsPage from './pages/UPSSystemsPage';
 import NUTServersPage from './pages/NUTServersPage';
 import SettingsPage from './pages/SettingsPage';
+import KioskMode from './pages/KioskMode';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import SetupPage from './pages/SetupPage';
@@ -66,6 +67,9 @@ const App = () => {
         <>
           <Route path="/login" element={!user ? <Login /> : <Navigate to="/" replace />} />
           <Route path="/register" element={!user ? <Register /> : <Navigate to="/" replace />} />
+          
+          {/* Kiosk mode route - accessible without authentication */}
+          <Route path="/kiosk" element={<KioskMode />} />
           
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
