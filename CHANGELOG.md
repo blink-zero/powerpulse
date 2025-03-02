@@ -5,6 +5,17 @@ All notable changes to the PowerPulse project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.10.1] - 2025-03-02
+
+### Fixed
+- Fixed issue in Kiosk Mode where cycling through UPS systems would cause an error:
+  - Added bounds checking for UPS index when filtering systems
+  - Implemented safe index calculation to prevent out-of-bounds access
+  - Improved error handling for filtered UPS systems
+- Fixed layout issue in Kiosk Mode where the view mode toggle button was overlapping with the "Last updated" time:
+  - Added right padding to header elements to prevent overlap
+  - Improved layout for better visibility of all UI elements
+
 ## [1.10.0] - 2025-03-02
 
 ### Added

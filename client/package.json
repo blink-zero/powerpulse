@@ -1,7 +1,7 @@
 {
   "name": "powerpulse-client",
   "private": true,
-  "version": "1.10.0",
+  "version": "1.10.1",
   "author": "blink-zero",
   "repository": {
     "type": "git",

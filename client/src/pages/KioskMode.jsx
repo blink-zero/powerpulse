@@ -50,14 +50,16 @@ const kioskReducer = (state, action) => {
     case 'SET_ERROR':
       return { ...state, error: action.payload };
     case 'NEXT_UPS':
+      // Simply increment the index - we'll handle bounds checking when accessing the array
       return { 
         ...state, 
-        currentUpsIndex: (state.currentUpsIndex + 1) % state.upsSystems.length 
+        currentUpsIndex: state.currentUpsIndex + 1
       };
     case 'SET_CURRENT_UPS_INDEX':
       return {
         ...state,
         currentUpsIndex: action.payload
+        // No need to do bounds checking here as we handle it with safeCurrentUpsIndex
       };
     case 'TOGGLE_VIEW_MODE':
       return {
@@ -101,7 +103,9 @@ const KioskMode = () => {
   }, [allUpsSystems, upsFilter]);
   
   // Get the current UPS to display (only used in single view mode)
-  const currentUps = upsSystems[currentUpsIndex] || null;
+  // Ensure currentUpsIndex is within bounds of the filtered upsSystems array
+  const safeCurrentUpsIndex = upsSystems.length > 0 ? currentUpsIndex % upsSystems.length : 0;
+  const currentUps = upsSystems[safeCurrentUpsIndex] || null;
   
   // Toggle between multi-view and single-view modes
   const toggleViewMode = () => {
@@ -281,7 +285,7 @@ const KioskMode = () => {
               <p className="text-gray-400 text-sm">{currentUps.model}</p>
             )}
           </div>
-          <div className="flex flex-col items-end">
+          <div className="flex flex-col items-end pr-12"> {/* Added right padding to avoid overlap with toggle button */}
             <div className={`px-3 py-1 rounded-full ${getStatusColor(currentUps.status)} text-white font-medium`}>
               {currentUps.status}
             </div>
@@ -387,7 +391,7 @@ const KioskMode = () => {
                 key={index}
                 onClick={() => dispatch({ type: 'SET_CURRENT_UPS_INDEX', payload: index })}
                 className={`h-3 w-3 rounded-full mx-1 ${
-                  index === currentUpsIndex ? 'bg-primary-500' : 'bg-gray-600'
+                  index === safeCurrentUpsIndex ? 'bg-primary-500' : 'bg-gray-600'
                 }`}
                 aria-label={`View UPS ${index + 1}`}
               />
@@ -404,7 +408,7 @@ const KioskMode = () => {
       <>
         <header className="mb-6 flex justify-between items-center">
           <h1 className="text-2xl font-bold">UPS Systems Overview</h1>
-          <p className="text-gray-400 text-xs">
+          <p className="text-gray-400 text-xs pr-12"> {/* Added right padding to avoid overlap with toggle button */}
             Last updated: {lastUpdated.toLocaleTimeString()}
           </p>
         </header>

@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   server:
-    image: blinkzero/powerpulse-server:1.8.3
+    image: blinkzero/powerpulse-server:1.10.1
     container_name: powerpulse-server
     restart: unless-stopped
     command: ["node", "server.js"]
@@ -39,7 +39,7 @@ services:
       - powerpulse-network
 
   client:
-    image: blinkzero/powerpulse-client:1.8.3
+    image: blinkzero/powerpulse-client:1.10.1
     container_name: powerpulse-client
     restart: unless-stopped
     ports:

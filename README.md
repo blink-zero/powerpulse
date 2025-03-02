@@ -1,7 +1,7 @@
 # PowerPulse
 
 ![PowerPulse Logo](https://img.shields.io/badge/PowerPulse-UPS%20Monitoring-blue)
-![Version](https://img.shields.io/badge/version-1.10.0-green)
+![Version](https://img.shields.io/badge/version-1.10.1-green)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 PowerPulse is a modern UPS (Uninterruptible Power Supply) monitoring dashboard integrated with Network UPS Tools (NUT). It provides a clean, responsive interface for monitoring and managing your UPS systems.
@@ -49,10 +49,10 @@ mkdir powerpulse && cd powerpulse
 mkdir -p server/data
 
 # Download the Docker Compose file
-wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.10.0/docker-compose.dockerhub.yml -O docker-compose.yml
+wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.10.1/docker-compose.dockerhub.yml -O docker-compose.yml
 
 # Download and configure the environment file
-wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.10.0/.env.example -O .env
+wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.10.1/.env.example -O .env
 # Edit .env with your configuration
 
 # Start PowerPulse
@@ -194,12 +194,12 @@ You can also run PowerPulse directly from Docker Hub without cloning the reposit
 
 3. Download the Docker Compose file:
    ```
-   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.10.0/docker-compose.dockerhub.yml -O docker-compose.yml
+   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.10.1/docker-compose.dockerhub.yml -O docker-compose.yml
    ```
 
 4. Create an environment file:
    ```
-   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.10.0/.env.example -O .env
+   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.10.1/.env.example -O .env
    # Edit .env with your configuration
    ```
 
@@ -262,8 +262,8 @@ You can also run PowerPulse directly from Docker Hub without cloning the reposit
    # image: blinkzero/powerpulse-server:1.9.0
    # image: blinkzero/powerpulse-client:1.9.0
    # To:
-   # image: blinkzero/powerpulse-server:1.10.0
-   # image: blinkzero/powerpulse-client:1.10.0
+   # image: blinkzero/powerpulse-server:1.10.1
+   # image: blinkzero/powerpulse-client:1.10.1
    ```
 
    Alternatively, download the latest docker-compose file (replace X.Y.Z with the latest version):
