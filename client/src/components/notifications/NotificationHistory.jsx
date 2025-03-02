@@ -47,12 +47,16 @@ const NotificationHistory = () => {
 
   // Helper function to format date
   const formatDate = (dateString) => {
+    // Parse the UTC date string and convert to local timezone
     const date = new Date(dateString);
+    
+    // Format the date in the local timezone
     return date.toLocaleString([], {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit'
+      minute: '2-digit',
+      timeZoneName: 'short' // Add timezone name to make it clear
     });
   };
 
