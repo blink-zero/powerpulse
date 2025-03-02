@@ -35,6 +35,61 @@ PowerPulse is a modern UPS (Uninterruptible Power Supply) monitoring dashboard i
 - **Responsive Design**: Works on desktop, tablet, and mobile devices
 - **Dark Mode Support**: Easy on the eyes during those late-night monitoring sessions
 
+## Quick Start
+
+Get up and running with PowerPulse in minutes:
+
+### Using Docker (Recommended)
+
+```bash
+# Create a directory for PowerPulse
+mkdir powerpulse && cd powerpulse
+
+# Create a data directory for the server
+mkdir -p server/data
+
+# Download the Docker Compose file
+wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.10.0/docker-compose.dockerhub.yml -O docker-compose.yml
+
+# Download and configure the environment file
+wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.10.0/.env.example -O .env
+# Edit .env with your configuration
+
+# Start PowerPulse
+docker-compose up -d
+```
+
+Then open your browser and navigate to `http://localhost:3000` to access PowerPulse.
+
+### Using Node.js
+
+```bash
+# Clone the repository
+git clone https://github.com/blink-zero/powerpulse.git
+cd powerpulse
+
+# Install dependencies
+npm run install-all
+
+# Configure environment variables
+cp .env.example .env
+# Edit .env with your configuration
+
+# Start the development server
+npm run dev
+```
+
+Then open your browser and navigate to `http://localhost:3000` to access PowerPulse.
+
+### First-time Setup
+
+1. Create an admin account when prompted
+2. Configure your NUT server connection
+3. PowerPulse will automatically discover your UPS systems
+4. Start monitoring your UPS systems!
+
+For more detailed instructions, see the [Installation](#installation) section below.
+
 ## Project Structure
 
 ```
@@ -139,12 +194,12 @@ You can also run PowerPulse directly from Docker Hub without cloning the reposit
 
 3. Download the Docker Compose file:
    ```
-   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.9.0/docker-compose.dockerhub.yml -O docker-compose.yml
+   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.10.0/docker-compose.dockerhub.yml -O docker-compose.yml
    ```
 
 4. Create an environment file:
    ```
-   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.9.0/.env.example -O .env
+   wget https://raw.githubusercontent.com/blink-zero/powerpulse/v1.10.0/.env.example -O .env
    # Edit .env with your configuration
    ```
 
@@ -204,11 +259,11 @@ You can also run PowerPulse directly from Docker Hub without cloning the reposit
    ```
    # Edit your docker-compose.yml file and update the image tags
    # From:
-   # image: blinkzero/powerpulse-server:1.8.3
-   # image: blinkzero/powerpulse-client:1.8.3
-   # To:
    # image: blinkzero/powerpulse-server:1.9.0
    # image: blinkzero/powerpulse-client:1.9.0
+   # To:
+   # image: blinkzero/powerpulse-server:1.10.0
+   # image: blinkzero/powerpulse-client:1.10.0
    ```
 
    Alternatively, download the latest docker-compose file (replace X.Y.Z with the latest version):
@@ -329,6 +384,7 @@ This will generate 24 hours of simulated battery history data for all configured
 - [Server Documentation](server/README.md): Information about the backend API and architecture
 - [API Documentation](API.md): Complete reference for all API endpoints
 - [Docker Documentation](DOCKER.md): Detailed instructions for Docker setup and configuration
+- [Kiosk Mode Documentation](KIOSK.md): Comprehensive guide to using the Kiosk Mode feature
 - [Changelog](CHANGELOG.md): History of changes and version updates
 
 ## License
