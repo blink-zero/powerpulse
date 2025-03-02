@@ -4,6 +4,27 @@ import { FiBattery, FiAlertCircle, FiClock, FiZap, FiActivity, FiThermometer, Fi
 import { useSettings } from '../context/SettingsContext';
 import { useLocation, useNavigate } from 'react-router-dom';
 
+// Disable inactivity timer for kiosk mode
+const disableInactivityTimer = () => {
+  // Clear any existing inactivity timer
+  const existingTimer = localStorage.getItem('lastActivityTimestamp');
+  if (existingTimer) {
+    // Set the timestamp to the current time and keep updating it
+    const updateTimestamp = () => {
+      localStorage.setItem('lastActivityTimestamp', Date.now().toString());
+    };
+    
+    // Update immediately and then every minute
+    updateTimestamp();
+    const intervalId = setInterval(updateTimestamp, 60000);
+    
+    // Return cleanup function
+    return () => clearInterval(intervalId);
+  }
+  
+  return () => {}; // No cleanup needed if no timer exists
+};
+
 // Dashboard reducer for state management
 const initialState = {
   upsSystems: [],
@@ -98,14 +119,15 @@ const KioskMode = () => {
     const fetchUpsSystems = async () => {
       try {
         dispatch({ type: 'SET_LOADING', payload: true });
-        const response = await axios.get('/api/ups/systems');
+        // Use the non-authenticated kiosk endpoint
+        const response = await axios.get('/api/ups/systems/kiosk');
         dispatch({ type: 'SET_UPS_SYSTEMS', payload: response.data });
       } catch (err) {
         dispatch({ 
           type: 'SET_ERROR', 
           payload: 'Failed to fetch UPS systems. Please check your connection to the NUT server.' 
         });
-        console.error('Error fetching UPS systems:', err);
+        console.error('Error fetching UPS systems for kiosk mode:', err);
       } finally {
         dispatch({ type: 'SET_LOADING', payload: false });
       }
@@ -118,6 +140,13 @@ const KioskMode = () => {
     
     return () => clearInterval(dataInterval);
   }, [getPollIntervalMs]);
+
+  // Disable inactivity timer for kiosk mode
+  useEffect(() => {
+    // This will keep updating the lastActivityTimestamp to prevent auto-logout
+    const cleanup = disableInactivityTimer();
+    return cleanup;
+  }, []);
 
   // Auto-rotate between UPS systems every 10 seconds if there are multiple and not in multi-view mode
   useEffect(() => {

@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added toggle button to switch between single and multi-view modes
   - Created compact UPS cards for multi-view display
   - Added URL parameters to control view mode and UPS selection
+  - Disabled inactivity timer for kiosk mode to prevent automatic logout
+  - Created dedicated API endpoint for kiosk mode that doesn't require authentication
 
 ## [1.9.1] - 2025-03-02
 

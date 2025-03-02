@@ -806,7 +806,44 @@ Endpoints for managing UPS systems.
 GET /api/ups-systems
 ```
 
-Returns a list of all UPS systems with their current status.
+Returns a list of all UPS systems with their current status. Requires authentication.
+
+**Response:**
+```json
+[
+  {
+    "id": 1,
+    "name": "ups1",
+    "nickname": "Server Room UPS",
+    "displayName": "Server Room UPS",
+    "upsName": "ups1",
+    "nutServerId": 1,
+    "model": "APC Smart-UPS 1500",
+    "status": "Online",
+    "batteryCharge": 100,
+    "batteryVoltage": 27.3,
+    "inputVoltage": 230.1,
+    "outputVoltage": 230.0,
+    "runtimeRemaining": 120,
+    "load": 30,
+    "temperature": 25.5,
+    "batteryDetails": { ... },
+    "deviceDetails": { ... },
+    "driverDetails": { ... },
+    "inputDetails": { ... },
+    "outputDetails": { ... },
+    "upsDetails": { ... }
+  }
+]
+```
+
+### Get UPS Systems for Kiosk Mode
+
+```
+GET /api/ups-systems/kiosk
+```
+
+Returns a list of all UPS systems with their current status for kiosk mode. This endpoint does not require authentication and is specifically designed for public displays.
 
 **Response:**
 ```json

@@ -5,6 +5,130 @@ const { getNutUpsData } = require('../utils/nutClient');
 
 const router = express.Router();
 
+// Get all UPS systems for kiosk mode (no authentication required)
+router.get('/kiosk', async (req, res) => {
+  try {
+    // First check if we have any UPS systems in the database
+    db.all('SELECT * FROM ups_systems', async (err, dbSystems) => {
+      if (err) {
+        console.error('Database error:', err.message);
+        return res.status(500).json({ message: 'Database error', error: err.message });
+      }
+      
+      // Get all NUT servers from database
+      db.all('SELECT id, host, port, username, password FROM nut_servers', async (err, servers) => {
+        if (err) {
+          console.error('Database error:', err.message);
+          return res.status(500).json({ message: 'Database error', error: err.message });
+        }
+        
+        if (servers.length === 0) {
+          return res.status(404).json({ message: 'No NUT servers configured' });
+        }
+        
+        try {
+          // Get UPS data from all NUT servers
+          const allUpsData = [];
+          
+          // Process each server
+          for (const server of servers) {
+            try {
+              const nutHost = server.host;
+              const nutPort = server.port || 3493;
+              const nutUsername = server.username;
+              const nutPassword = server.password;
+              
+              console.log(`Connecting to NUT server at ${nutHost}:${nutPort} for kiosk mode`);
+              
+              const upsData = await getNutUpsData(nutHost, nutPort, nutUsername, nutPassword);
+              
+              // Map UPS data to include server ID
+              const mappedUpsData = upsData.map(ups => ({
+                ...ups,
+                nutServerId: server.id
+              }));
+              
+              allUpsData.push(...mappedUpsData);
+            } catch (serverErr) {
+              console.error(`Error connecting to NUT server ${server.host}:${server.port}:`, serverErr);
+              // Continue with other servers even if one fails
+            }
+          }
+          
+          // If we have database systems, combine with live data
+          if (dbSystems.length > 0) {
+            const combinedData = dbSystems.map(dbSystem => {
+              // Find matching UPS in live data
+              const liveUps = allUpsData.find(ups => 
+                ups.name === dbSystem.ups_name && 
+                ups.nutServerId === dbSystem.nut_server_id
+              );
+              
+              if (liveUps) {
+                // Combine database and live data
+                return {
+                  id: dbSystem.id,
+                  name: dbSystem.name,
+                  nickname: dbSystem.nickname,
+                  displayName: dbSystem.nickname || liveUps.displayName || dbSystem.name,
+                  upsName: dbSystem.ups_name,
+                  nutServerId: dbSystem.nut_server_id,
+                  model: liveUps.model,
+                  status: liveUps.status,
+                  batteryCharge: liveUps.batteryCharge,
+                  batteryVoltage: liveUps.batteryVoltage,
+                  inputVoltage: liveUps.inputVoltage,
+                  outputVoltage: liveUps.outputVoltage,
+                  runtimeRemaining: liveUps.runtimeRemaining,
+                  load: liveUps.load,
+                  temperature: liveUps.temperature,
+                  // Include extended details
+                  batteryDetails: liveUps.batteryDetails,
+                  deviceDetails: liveUps.deviceDetails,
+                  driverDetails: liveUps.driverDetails,
+                  inputDetails: liveUps.inputDetails,
+                  outputDetails: liveUps.outputDetails,
+                  upsDetails: liveUps.upsDetails,
+                  rawVariables: liveUps.rawVariables
+                };
+              } else {
+                // Return basic info if live data not available
+                return {
+                  id: dbSystem.id,
+                  name: dbSystem.name,
+                  nickname: dbSystem.nickname,
+                  displayName: dbSystem.nickname || dbSystem.name,
+                  upsName: dbSystem.ups_name,
+                  nutServerId: dbSystem.nut_server_id,
+                  status: 'Unknown',
+                  batteryCharge: null,
+                  runtimeRemaining: null,
+                  load: null
+                };
+              }
+            });
+            
+            return res.json(combinedData);
+          } else if (allUpsData.length > 0) {
+            // If no database systems but we have live data, return that
+            return res.json(allUpsData);
+          } else {
+            // If no UPS systems are found, return empty array
+            console.log('No UPS systems found for kiosk mode');
+            return res.json([]);
+          }
+        } catch (nutErr) {
+          console.error('NUT server error:', nutErr);
+          return res.status(500).json({ message: 'Error connecting to NUT servers', error: nutErr.message });
+        }
+      });
+    });
+  } catch (error) {
+    console.error('Error in /api/ups/systems/kiosk:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
 // Get all UPS systems from database
 router.get('/', authenticateToken, async (req, res) => {
   try {

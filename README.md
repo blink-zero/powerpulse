@@ -1,7 +1,7 @@
 # PowerPulse
 
 ![PowerPulse Logo](https://img.shields.io/badge/PowerPulse-UPS%20Monitoring-blue)
-![Version](https://img.shields.io/badge/version-1.9.1-green)
+![Version](https://img.shields.io/badge/version-1.10.0-green)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 PowerPulse is a modern UPS (Uninterruptible Power Supply) monitoring dashboard integrated with Network UPS Tools (NUT). It provides a clean, responsive interface for monitoring and managing your UPS systems.
@@ -21,6 +21,7 @@ PowerPulse is a modern UPS (Uninterruptible Power Supply) monitoring dashboard i
 ## Features
 
 - **UPS Monitoring Dashboard**: View all your UPS systems in a clean, modern interface
+- **Kiosk Mode**: Dedicated full-screen view for public displays without authentication.
 - **UPS System Nicknaming**: Assign custom nicknames to your UPS systems for easier identification
 - **Detailed UPS Information**: Access comprehensive details about each UPS system
 - **Battery History Tracking**: Monitor battery performance over time
