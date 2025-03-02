@@ -6,10 +6,10 @@ Here are the versions we're currently keeping an eye on and patching:
 
 | Version | Still Getting Love? |
 | ------- | ------------------ |
-| 1.8.x   | ✅ You bet! |
-| 1.7.x   | ✅ Yep! |
-| 1.6.x   | ✅ Still caring for these |
-| < 1.6   | ❌ Time to upgrade! |
+| 1.10.x  | ✅ You bet! |
+| 1.9.x   | ✅ Yep! |
+| 1.8.x   | ❌ Time to upgrade! |
+| < 1.7.x | ❌ Time to upgrade! |
 
 ## Found a Security Bug?
 
