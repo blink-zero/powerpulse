@@ -55,8 +55,7 @@ const NotificationHistory = () => {
       month: 'short',
       day: 'numeric',
       hour: '2-digit',
-      minute: '2-digit',
-      timeZoneName: 'short' // Add timezone name to make it clear
+      minute: '2-digit'
     });
   };
 
